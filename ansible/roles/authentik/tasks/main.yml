@@ -3,7 +3,7 @@
 
 - name: Copy Authentik docker-compose file
   copy:
-    src: "{{ playbook_dir }}/../compose/authentik/docker-compose.yml"
+    src: "{{ playbook_dir }}/../../compose/authentik/docker-compose.yml"
     dest: "{{ compose_base_path }}/authentik/docker-compose.yml"
     mode: '0644'
 

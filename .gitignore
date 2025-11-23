@@ -1,0 +1,55 @@
+# Ansible
+*.retry
+ansible/inventory/group_vars/vault.yml
+.vault_pass
+
+# Environment files
+.env
+*.env
+!.env.example
+
+# Backups
+backups/
+*.tar.gz
+*.backup
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Secrets
+secrets/
+*.key
+*.pem
+*.crt
+!*.example
+
+# Docker
+docker-compose.override.yml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+env/
+
+# Ansible vault password file
+.vault_password

@@ -1,0 +1,28 @@
+---
+version: '3.8'
+
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer_data:/data
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    environment:
+      - TZ=${TZ:-America/New_York}
+    networks:
+      - homelab
+
+volumes:
+  portainer_data:
+
+networks:
+  homelab:
+    external: true
+    name: homelab

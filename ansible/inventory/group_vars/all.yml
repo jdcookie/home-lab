@@ -1,0 +1,41 @@
+---
+# Global variables for all hosts
+# These can be overridden by environment variables - see .env.example
+
+# Domain configuration
+homelab_domain: "{{ lookup('env', 'HOMELAB_DOMAIN') | default('lab.example.com', true) }}"
+base_domain: "{{ lookup('env', 'BASE_DOMAIN') | default('example.com', true) }}"
+
+# Network configuration
+homelab_network: "{{ lookup('env', 'NETWORK_CIDR') | default('192.168.1.0/24', true) }}"
+homelab_gateway: "{{ lookup('env', 'GATEWAY_IP') | default('192.168.1.1', true) }}"
+homelab_dns_primary: "{{ lookup('env', 'PIHOLE_IP') | default('192.168.1.10', true) }}"
+homelab_dns_secondary: "1.1.1.1"
+
+# Timezone
+timezone: "{{ lookup('env', 'TIMEZONE') | default('America/New_York', true) }}"
+
+# Docker configuration
+docker_version: "latest"
+docker_compose_version: "2.23.0"
+
+# Service URLs (automatically built from homelab_domain)
+pihole_url: "pihole.{{ homelab_domain }}"
+caddy_url: "proxy.{{ homelab_domain }}"
+authentik_url: "auth.{{ homelab_domain }}"
+jellyfin_url: "jellyfin.{{ homelab_domain }}"
+n8n_url: "n8n.{{ homelab_domain }}"
+portainer_url: "portainer.{{ homelab_domain }}"
+uptime_url: "status.{{ homelab_domain }}"
+
+# Future services (uncomment when enabled)
+# immich_url: "immich.{{ homelab_domain }}"
+
+# Paths
+homelab_repo_path: "/opt/homelab"
+compose_base_path: "/opt/homelab/compose"
+backup_path: "/opt/backups"
+
+# Backup configuration
+backup_retention_days: 30
+backup_schedule: "0 2 * * *"  # Daily at 2 AM

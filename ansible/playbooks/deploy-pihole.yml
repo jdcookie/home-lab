@@ -1,0 +1,19 @@
+---
+# Deploy and configure PiHole DNS server
+
+- name: Deploy PiHole DNS
+  hosts: pihole
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - pihole
+
+  tasks:
+    - name: Display PiHole information
+      debug:
+        msg: "PiHole deployed at {{ ansible_host }} - Access at http://{{ pihole_url }}/admin"
+
+    - name: Reminder to set PiHole password
+      debug:
+        msg: "Run 'pihole -a -p' on the PiHole container to set admin password"

@@ -1,0 +1,89 @@
+# Caddyfile for Homelab Reverse Proxy
+# Managed by Ansible - DO NOT EDIT MANUALLY
+
+# Global options
+{
+    # Use Let's Encrypt for public domain certificates
+    email {{ caddy_admin_email | default('admin@example.com') }}
+
+    log {
+        output file /var/log/caddy/access.log
+        format console
+    }
+}
+
+# Authentik SSO
+{{ authentik_url }} {
+    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:9000
+
+    header_up Host {upstream_hostport}
+    header_up X-Real-IP {remote_host}
+    header_up X-Forwarded-For {remote_host}
+    header_up X-Forwarded-Proto {scheme}
+}
+
+# Jellyfin Media Server
+{{ jellyfin_url }} {
+    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:8096
+
+    header_up Host {upstream_hostport}
+    header_up X-Real-IP {remote_host}
+    header_up X-Forwarded-For {remote_host}
+    header_up X-Forwarded-Proto {scheme}
+}
+
+# Immich Photo Management - DISABLED (requires additional storage)
+# Uncomment when storage is configured
+# {{ immich_url }} {
+#     reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:2283
+#
+#     header_up Host {upstream_hostport}
+#     header_up X-Real-IP {remote_host}
+#     header_up X-Forwarded-For {remote_host}
+#     header_up X-Forwarded-Proto {scheme}
+#
+#     # Immich specific settings
+#     request_body {
+#         max_size 5000MB
+#     }
+# }
+
+# N8N Workflow Automation
+{{ n8n_url }} {
+    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:5678
+
+    header_up Host {upstream_hostport}
+    header_up X-Real-IP {remote_host}
+    header_up X-Forwarded-For {remote_host}
+    header_up X-Forwarded-Proto {scheme}
+}
+
+# Portainer Container Management
+{{ portainer_url }} {
+    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:9000
+
+    header_up Host {upstream_hostport}
+    header_up X-Real-IP {remote_host}
+    header_up X-Forwarded-For {remote_host}
+    header_up X-Forwarded-Proto {scheme}
+}
+
+# Uptime Kuma Monitoring
+{{ uptime_url }} {
+    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:3001
+
+    header_up Host {upstream_hostport}
+    header_up X-Real-IP {remote_host}
+    header_up X-Forwarded-For {remote_host}
+    header_up X-Forwarded-Proto {scheme}
+}
+
+# PiHole Admin Interface
+{{ pihole_url }} {
+    reverse_proxy {{ hostvars['pihole']['ansible_host'] }}:80
+
+    header_up Host {upstream_hostport}
+    header_up X-Real-IP {remote_host}
+    header_up X-Forwarded-For {remote_host}
+    header_up X-Forwarded-Proto {scheme}
+}

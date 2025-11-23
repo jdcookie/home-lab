@@ -1,0 +1,146 @@
+---
+# Deploy all Docker-based services
+
+- name: Setup Docker on services host
+  hosts: docker_hosts
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - docker
+
+  tasks:
+    - name: Docker installation complete
+      debug:
+        msg: "Docker installed and configured on {{ ansible_host }}"
+
+- name: Deploy Authentik SSO
+  hosts: docker_hosts
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - authentik
+
+  tasks:
+    - name: Authentik deployment information
+      debug:
+        msg: "Authentik deployed - Access at https://{{ authentik_url }}"
+
+- name: Deploy Jellyfin
+  hosts: docker_hosts
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - jellyfin
+
+  tasks:
+    - name: Jellyfin deployment information
+      debug:
+        msg: "Jellyfin deployed - Access at https://{{ jellyfin_url }}"
+
+# Immich - DISABLED (requires additional storage)
+# Uncomment when storage is configured
+# - name: Deploy Immich
+#   hosts: docker_hosts
+#   become: yes
+#   gather_facts: yes
+#
+#   roles:
+#     - immich
+#
+#   tasks:
+#     - name: Immich deployment information
+#       debug:
+#         msg: "Immich deployed - Access at https://{{ immich_url }}"
+
+- name: Deploy N8N
+  hosts: docker_hosts
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Create N8N directory
+      file:
+        path: "{{ compose_base_path }}/n8n"
+        state: directory
+        mode: '0755'
+
+    - name: Copy N8N docker-compose file
+      copy:
+        src: "{{ playbook_dir }}/../../compose/n8n/docker-compose.yml"
+        dest: "{{ compose_base_path }}/n8n/docker-compose.yml"
+        mode: '0644'
+
+    - name: Create N8N .env file
+      template:
+        src: "{{ playbook_dir }}/../roles/n8n/templates/n8n.env.j2"
+        dest: "{{ compose_base_path }}/n8n/.env"
+        mode: '0600'
+
+    - name: Start N8N
+      docker_compose:
+        project_src: "{{ compose_base_path }}/n8n"
+        state: present
+        pull: yes
+
+    - name: N8N deployment information
+      debug:
+        msg: "N8N deployed - Access at https://{{ n8n_url }}"
+
+- name: Deploy Portainer
+  hosts: docker_hosts
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Copy Portainer docker-compose file
+      copy:
+        src: "{{ playbook_dir }}/../compose/portainer/docker-compose.yml"
+        dest: "{{ compose_base_path }}/portainer/docker-compose.yml"
+        mode: '0644'
+
+    - name: Create Portainer .env file
+      copy:
+        content: "TZ={{ timezone }}\n"
+        dest: "{{ compose_base_path }}/portainer/.env"
+        mode: '0600'
+
+    - name: Start Portainer
+      docker_compose:
+        project_src: "{{ compose_base_path }}/portainer"
+        state: present
+        pull: yes
+
+    - name: Portainer deployment information
+      debug:
+        msg: "Portainer deployed - Access at https://{{ portainer_url }}"
+
+- name: Deploy Uptime Kuma
+  hosts: docker_hosts
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Copy Uptime Kuma docker-compose file
+      copy:
+        src: "{{ playbook_dir }}/../compose/monitoring/docker-compose.yml"
+        dest: "{{ compose_base_path }}/monitoring/docker-compose.yml"
+        mode: '0644'
+
+    - name: Create monitoring .env file
+      copy:
+        content: "TZ={{ timezone }}\n"
+        dest: "{{ compose_base_path }}/monitoring/.env"
+        mode: '0600'
+
+    - name: Start Uptime Kuma
+      docker_compose:
+        project_src: "{{ compose_base_path }}/monitoring"
+        state: present
+        pull: yes
+
+    - name: Uptime Kuma deployment information
+      debug:
+        msg: "Uptime Kuma deployed - Access at https://{{ uptime_url }}"

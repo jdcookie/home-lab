@@ -1,0 +1,25 @@
+---
+# Deploy and configure Caddy reverse proxy
+
+- name: Deploy Caddy reverse proxy
+  hosts: caddy
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - caddy
+
+  tasks:
+    - name: Display Caddy information
+      debug:
+        msg: "Caddy deployed at {{ ansible_host }} - All services now accessible via domain names"
+
+    - name: List configured services
+      debug:
+        msg:
+          - "Authentik SSO: https://{{ authentik_url }}"
+          - "Jellyfin: https://{{ jellyfin_url }}"
+          - "Immich: https://{{ immich_url }}"
+          - "Portainer: https://{{ portainer_url }}"
+          - "Uptime Kuma: https://{{ uptime_url }}"
+          - "PiHole: https://{{ pihole_url }}"

@@ -1,0 +1,15 @@
+---
+# Deploy base infrastructure on all hosts
+
+- name: Configure all hosts with common settings
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - common
+
+  tasks:
+    - name: Display host information
+      debug:
+        msg: "Configured {{ inventory_hostname }} at {{ ansible_host }}"

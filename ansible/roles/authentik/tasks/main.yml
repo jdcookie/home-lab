@@ -1,0 +1,40 @@
+---
+# Authentik role - deploy Authentik SSO
+
+- name: Copy Authentik docker-compose file
+  copy:
+    src: "{{ playbook_dir }}/../compose/authentik/docker-compose.yml"
+    dest: "{{ compose_base_path }}/authentik/docker-compose.yml"
+    mode: '0644'
+
+- name: Create Authentik .env file
+  template:
+    src: authentik.env.j2
+    dest: "{{ compose_base_path }}/authentik/.env"
+    mode: '0600'
+
+- name: Create Authentik directories
+  file:
+    path: "{{ compose_base_path }}/authentik/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - media
+    - custom-templates
+    - certs
+
+- name: Start Authentik services
+  docker_compose:
+    project_src: "{{ compose_base_path }}/authentik"
+    state: present
+    pull: yes
+  register: authentik_output
+
+- name: Wait for Authentik to be ready
+  uri:
+    url: "http://localhost:9000/if/flow/initial-setup/"
+    status_code: 200
+  retries: 30
+  delay: 10
+  register: result
+  until: result.status == 200

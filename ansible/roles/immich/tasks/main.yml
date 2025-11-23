@@ -1,0 +1,26 @@
+---
+# Immich role - deploy Immich photo management
+
+- name: Copy Immich docker-compose file
+  copy:
+    src: "{{ playbook_dir }}/../compose/immich/docker-compose.yml"
+    dest: "{{ compose_base_path }}/immich/docker-compose.yml"
+    mode: '0644'
+
+- name: Create Immich .env file
+  template:
+    src: immich.env.j2
+    dest: "{{ compose_base_path }}/immich/.env"
+    mode: '0600'
+
+- name: Create Immich upload directory
+  file:
+    path: "{{ immich_upload_path | default('/opt/immich/upload') }}"
+    state: directory
+    mode: '0755'
+
+- name: Start Immich services
+  docker_compose:
+    project_src: "{{ compose_base_path }}/immich"
+    state: present
+    pull: yes

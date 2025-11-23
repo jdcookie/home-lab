@@ -1,0 +1,19 @@
+# PiHole Custom DNS Records
+# Managed by Ansible - DO NOT EDIT MANUALLY
+
+# Proxmox Host
+{{ hostvars['pve']['ansible_host'] }} proxmox.{{ homelab_domain }}
+
+# Infrastructure Services
+{{ hostvars['pihole']['ansible_host'] }} {{ pihole_url }}
+{{ hostvars['caddy']['ansible_host'] }} {{ caddy_url }} proxy.{{ homelab_domain }}
+
+# Application Services (Docker Host)
+{{ hostvars['docker-services']['ansible_host'] }} {{ authentik_url }} auth.{{ homelab_domain }}
+{{ hostvars['docker-services']['ansible_host'] }} {{ jellyfin_url }}
+{{ hostvars['docker-services']['ansible_host'] }} {{ n8n_url }}
+{{ hostvars['docker-services']['ansible_host'] }} {{ portainer_url }}
+{{ hostvars['docker-services']['ansible_host'] }} {{ uptime_url }} status.{{ homelab_domain }}
+
+# Future Services (uncomment when enabled)
+# {{ hostvars['docker-services']['ansible_host'] }} {{ immich_url }}

@@ -1,0 +1,40 @@
+---
+# PiHole role - configure PiHole DNS
+
+- name: Install PiHole dependencies
+  apt:
+    name:
+      - curl
+      - ca-certificates
+    state: present
+
+- name: Create PiHole directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /etc/pihole
+    - /etc/dnsmasq.d
+
+- name: Deploy custom DNS records
+  template:
+    src: pihole-custom.list.j2
+    dest: /etc/pihole/custom.list
+    mode: '0644'
+  notify: restart pihole-FTL
+
+- name: Configure PiHole local DNS domain
+  copy:
+    content: |
+      domain={{ homelab_domain }}
+      expand-hosts
+    dest: /etc/dnsmasq.d/02-homelab.conf
+    mode: '0644'
+  notify: restart pihole-FTL
+
+- name: Ensure PiHole-FTL service is enabled
+  systemd:
+    name: pihole-FTL
+    enabled: yes
+    state: started

@@ -1,0 +1,38 @@
+---
+version: '3.8'
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    user: 1000:1000  # UPDATE with your user:group ID
+    environment:
+      - TZ=${TZ:-America/New_York}
+      - JELLYFIN_PublishedServerUrl=${JELLYFIN_URL:-http://jellyfin.home.lab}
+    volumes:
+      - ./config:/config
+      - ./cache:/cache
+      - ${MEDIA_PATH:-/mnt/media}:/media:ro  # UPDATE with your media path
+    ports:
+      - "8096:8096"
+      - "8920:8920"  # HTTPS (optional)
+      - "7359:7359/udp"  # Auto-discovery (optional)
+      - "1900:1900/udp"  # DLNA (optional)
+    devices:
+      # Intel QuickSync hardware acceleration (uncomment if available)
+      # - /dev/dri/renderD128:/dev/dri/renderD128
+      # - /dev/dri/card0:/dev/dri/card0
+      # NVIDIA hardware acceleration (uncomment if available)
+      # - /dev/nvidia0:/dev/nvidia0
+      # - /dev/nvidiactl:/dev/nvidiactl
+      # - /dev/nvidia-modeset:/dev/nvidia-modeset
+      # - /dev/nvidia-uvm:/dev/nvidia-uvm
+      # - /dev/nvidia-uvm-tools:/dev/nvidia-uvm-tools
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true
+    name: homelab

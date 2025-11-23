@@ -1,0 +1,17 @@
+---
+# Main orchestration playbook - deploys entire homelab infrastructure
+
+- name: Deploy homelab infrastructure
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Display deployment information
+      debug:
+        msg: "Deploying homelab infrastructure to {{ inventory_hostname }}"
+
+- import_playbook: deploy-infrastructure.yml
+- import_playbook: deploy-pihole.yml
+- import_playbook: deploy-caddy.yml
+- import_playbook: deploy-docker-services.yml

@@ -3,17 +3,17 @@
 # These can be overridden by environment variables - see .env.example
 
 # Domain configuration
-homelab_domain: "{{ lookup('env', 'HOMELAB_DOMAIN') | default('lab.example.com', true) }}"
-base_domain: "{{ lookup('env', 'BASE_DOMAIN') | default('example.com', true) }}"
+homelab_domain: "{{ lookup('pipe', 'grep ^HOMELAB_DOMAIN= ../../.env | cut -d= -f2') | default('lab.example.com', true) }}"
+base_domain: "{{ lookup('pipe', 'grep ^BASE_DOMAIN= ../../.env | cut -d= -f2') | default('example.com', true) }}"
 
 # Network configuration
-homelab_network: "{{ lookup('env', 'NETWORK_CIDR') | default('192.168.1.0/24', true) }}"
-homelab_gateway: "{{ lookup('env', 'GATEWAY_IP') | default('192.168.1.1', true) }}"
-homelab_dns_primary: "{{ lookup('env', 'PIHOLE_IP') | default('192.168.1.10', true) }}"
+homelab_network: "{{ lookup('pipe', 'grep ^NETWORK_CIDR= ../../.env | cut -d= -f2') | default('192.168.1.0/24', true) }}"
+homelab_gateway: "{{ lookup('pipe', 'grep ^GATEWAY_IP= ../../.env | cut -d= -f2') | default('192.168.1.1', true) }}"
+homelab_dns_primary: "{{ lookup('pipe', 'grep ^PIHOLE_IP= ../../.env | cut -d= -f2') | default('192.168.1.10', true) }}"
 homelab_dns_secondary: "1.1.1.1"
 
 # Timezone
-timezone: "{{ lookup('env', 'TIMEZONE') | default('America/New_York', true) }}"
+timezone: "{{ lookup('pipe', 'grep ^TIMEZONE= ../../.env | cut -d= -f2') | default('America/New_York', true) }}"
 
 # Docker configuration
 docker_version: "latest"

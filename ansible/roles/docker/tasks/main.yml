@@ -54,8 +54,8 @@
     state: present
 
 - name: Install Docker Python library
-  pip:
-    name: docker
+  apt:
+    name: python3-docker
     state: present
 
 - name: Create Docker daemon configuration

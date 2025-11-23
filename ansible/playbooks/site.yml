@@ -2,7 +2,7 @@
 # Main orchestration playbook - deploys entire homelab infrastructure
 
 - name: Deploy homelab infrastructure
-  hosts: all
+  hosts: all:!proxmox
   become: yes
   gather_facts: yes
 

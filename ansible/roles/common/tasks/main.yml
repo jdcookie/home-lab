@@ -30,7 +30,7 @@
   timezone:
     name: "{{ timezone }}"
 
-- name: Configure sysctl for better network performance
+- name: Configure sysctl for network forwarding
   sysctl:
     name: "{{ item.key }}"
     value: "{{ item.value }}"
@@ -39,7 +39,16 @@
   loop:
     - { key: 'net.ipv4.ip_forward', value: '1' }
     - { key: 'net.ipv6.conf.all.forwarding', value: '1' }
-    - { key: 'vm.swappiness', value: '10' }
+  ignore_errors: yes
+
+- name: Configure vm.swappiness (VMs only)
+  sysctl:
+    name: vm.swappiness
+    value: '10'
+    state: present
+    reload: yes
+  when: ansible_virtualization_type != "lxc"
+  ignore_errors: yes
 
 - name: Create homelab directories
   file:

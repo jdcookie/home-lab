@@ -2,7 +2,7 @@
 # Deploy base infrastructure on all hosts
 
 - name: Configure all hosts with common settings
-  hosts: all
+  hosts: all:!proxmox
   become: yes
   gather_facts: yes
 

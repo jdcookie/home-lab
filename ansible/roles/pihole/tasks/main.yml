@@ -57,21 +57,31 @@
   when: not pihole_installed.stat.exists
   notify: restart pihole-FTL
 
-- name: Add custom DNS records (PiHole v6+)
-  command: "/usr/local/bin/pihole dns add {{ item.domain }} {{ item.ip }}"
-  loop:
-    - { domain: "proxmox.{{ homelab_domain }}", ip: "{{ hostvars['pve']['ansible_host'] }}" }
-    - { domain: "{{ pihole_url }}", ip: "{{ hostvars['pihole']['ansible_host'] }}" }
-    - { domain: "{{ caddy_url }}", ip: "{{ hostvars['caddy']['ansible_host'] }}" }
-    - { domain: "{{ authentik_url }}", ip: "{{ hostvars['caddy']['ansible_host'] }}" }
-    - { domain: "{{ jellyfin_url }}", ip: "{{ hostvars['caddy']['ansible_host'] }}" }
-    - { domain: "{{ n8n_url }}", ip: "{{ hostvars['caddy']['ansible_host'] }}" }
-    - { domain: "{{ portainer_url }}", ip: "{{ hostvars['caddy']['ansible_host'] }}" }
-    - { domain: "{{ uptime_url }}", ip: "{{ hostvars['caddy']['ansible_host'] }}" }
-    - { domain: "docker.{{ homelab_domain }}", ip: "{{ hostvars['docker-services']['ansible_host'] }}" }
-  register: dns_result
-  changed_when: "'already exists' not in dns_result.stderr"
-  failed_when: false
+- name: Enable dnsmasq.d directory loading (PiHole v6+)
+  lineinfile:
+    path: /etc/pihole/pihole.toml
+    regexp: '^.*misc\.etc_dnsmasq_d.*'
+    line: '  etc_dnsmasq_d = true'
+    insertafter: '^\[misc\]'
+  notify: restart pihole-FTL
+
+- name: Deploy custom DNS records via dnsmasq
+  copy:
+    content: |
+      # Custom DNS records for homelab
+      # Managed by Ansible - DO NOT EDIT MANUALLY
+      address=/proxmox.{{ homelab_domain }}/{{ hostvars['pve']['ansible_host'] }}
+      address=/{{ pihole_url }}/{{ hostvars['pihole']['ansible_host'] }}
+      address=/{{ caddy_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ authentik_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ jellyfin_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ n8n_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ portainer_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ uptime_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/docker.{{ homelab_domain }}/{{ hostvars['docker-services']['ansible_host'] }}
+    dest: /etc/dnsmasq.d/99-homelab-dns.conf
+    mode: '0644'
+  notify: restart pihole-FTL
 
 - name: Configure PiHole local DNS domain
   copy:

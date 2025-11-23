@@ -18,6 +18,8 @@
   hosts: docker_hosts
   become: yes
   gather_facts: yes
+  vars_files:
+    - ../inventory/group_vars/vault.yml
 
   roles:
     - authentik

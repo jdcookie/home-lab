@@ -31,13 +31,19 @@
     state: present
     filename: caddy-stable
 
+- name: Create Caddy log directory
+  file:
+    path: /var/log/caddy
+    state: directory
+    mode: '0755'
+
 - name: Install Caddy
   apt:
     name: caddy
     state: present
     update_cache: yes
 
-- name: Create Caddy log directory
+- name: Set Caddy log directory ownership
   file:
     path: /var/log/caddy
     state: directory

@@ -8,12 +8,15 @@
 {{ hostvars['pihole']['ansible_host'] }} {{ pihole_url }}
 {{ hostvars['caddy']['ansible_host'] }} {{ caddy_url }} proxy.{{ homelab_domain }}
 
-# Application Services (Docker Host)
-{{ hostvars['docker-services']['ansible_host'] }} {{ authentik_url }} auth.{{ homelab_domain }}
-{{ hostvars['docker-services']['ansible_host'] }} {{ jellyfin_url }}
-{{ hostvars['docker-services']['ansible_host'] }} {{ n8n_url }}
-{{ hostvars['docker-services']['ansible_host'] }} {{ portainer_url }}
-{{ hostvars['docker-services']['ansible_host'] }} {{ uptime_url }} status.{{ homelab_domain }}
+# Application Services (via Caddy reverse proxy)
+{{ hostvars['caddy']['ansible_host'] }} {{ authentik_url }}
+{{ hostvars['caddy']['ansible_host'] }} {{ jellyfin_url }}
+{{ hostvars['caddy']['ansible_host'] }} {{ n8n_url }}
+{{ hostvars['caddy']['ansible_host'] }} {{ portainer_url }}
+{{ hostvars['caddy']['ansible_host'] }} {{ uptime_url }}
+
+# Docker host direct access (optional)
+{{ hostvars['docker-services']['ansible_host'] }} docker.{{ homelab_domain }}
 
 # Future Services (uncomment when enabled)
 # {{ hostvars['docker-services']['ansible_host'] }} {{ immich_url }}

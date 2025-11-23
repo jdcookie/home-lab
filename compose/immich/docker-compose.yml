@@ -1,6 +1,4 @@
 ---
-version: '3.8'
-
 services:
   immich-server:
     image: ghcr.io/immich-app/immich-server:release

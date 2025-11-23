@@ -99,7 +99,7 @@
   tasks:
     - name: Copy Portainer docker-compose file
       copy:
-        src: "{{ playbook_dir }}/../compose/portainer/docker-compose.yml"
+        src: "{{ playbook_dir }}/../../compose/portainer/docker-compose.yml"
         dest: "{{ compose_base_path }}/portainer/docker-compose.yml"
         mode: '0644'
 
@@ -127,7 +127,7 @@
   tasks:
     - name: Copy Uptime Kuma docker-compose file
       copy:
-        src: "{{ playbook_dir }}/../compose/monitoring/docker-compose.yml"
+        src: "{{ playbook_dir }}/../../compose/monitoring/docker-compose.yml"
         dest: "{{ compose_base_path }}/monitoring/docker-compose.yml"
         mode: '0644'
 

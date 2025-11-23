@@ -60,22 +60,29 @@ if [ ! -f ansible/inventory/group_vars/vault.yml ]; then
     echo "You will be prompted to enter a vault password (save this securely!)"
     cp ansible/inventory/group_vars/vault.yml.example ansible/inventory/group_vars/vault.yml
 
-    # Generate secure passwords
-    PG_PASS=$(openssl rand -base64 32)
-    SECRET_KEY=$(openssl rand -base64 50 | tr -d '=' | tr '+/' '-_')
-    IMMICH_PASS=$(openssl rand -base64 32)
-    PIHOLE_PASS=$(openssl rand -base64 16)
+    # Generate secure passwords (hex only to avoid sed issues)
+    AUTHENTIK_SECRET=$(openssl rand -hex 32)
+    AUTHENTIK_PG_PASS=$(openssl rand -hex 24)
+    IMMICH_DB_PASS=$(openssl rand -hex 24)
+    IMMICH_CLIENT_SECRET=$(openssl rand -hex 24)
+    POSTGRES_ROOT_PASS=$(openssl rand -hex 24)
+    PIHOLE_PASS=$(openssl rand -hex 12)
 
-    # Update vault file with generated passwords
-    sed -i.bak "s/CHANGE-ME-RANDOM-50-CHARS/$SECRET_KEY/" ansible/inventory/group_vars/vault.yml
-    sed -i.bak "s/CHANGE-ME-SECURE-PASSWORD/$PG_PASS/" ansible/inventory/group_vars/vault.yml
-    sed -i.bak "s/CHANGE-ME-CLIENT-SECRET/$(openssl rand -base64 32)/" ansible/inventory/group_vars/vault.yml
+    # Update vault file with generated passwords using line-specific replacements
+    sed -i.bak "s/authentik_secret_key: \"CHANGE-ME-RANDOM-50-CHARS\"/authentik_secret_key: \"$AUTHENTIK_SECRET\"/" ansible/inventory/group_vars/vault.yml
+    sed -i.bak "s/authentik_postgres_password: \"CHANGE-ME-SECURE-PASSWORD\"/authentik_postgres_password: \"$AUTHENTIK_PG_PASS\"/" ansible/inventory/group_vars/vault.yml
+    sed -i.bak "s/immich_db_password: \"CHANGE-ME-SECURE-PASSWORD\"/immich_db_password: \"$IMMICH_DB_PASS\"/" ansible/inventory/group_vars/vault.yml
+    sed -i.bak "s/immich_oauth_client_secret: \"CHANGE-ME-CLIENT-SECRET\"/immich_oauth_client_secret: \"$IMMICH_CLIENT_SECRET\"/" ansible/inventory/group_vars/vault.yml
+    sed -i.bak "s/postgres_root_password: \"CHANGE-ME-SECURE-PASSWORD\"/postgres_root_password: \"$POSTGRES_ROOT_PASS\"/" ansible/inventory/group_vars/vault.yml
+    sed -i.bak "s/pihole_admin_password: \"CHANGE-ME-SECURE-PASSWORD\"/pihole_admin_password: \"$PIHOLE_PASS\"/" ansible/inventory/group_vars/vault.yml
+
+    # Clean up backup files
+    rm -f ansible/inventory/group_vars/vault.yml.bak
 
     # Encrypt the vault
     ansible-vault encrypt ansible/inventory/group_vars/vault.yml
 
     echo "✅ Vault file created and encrypted"
-    rm ansible/inventory/group_vars/vault.yml.bak
 fi
 
 echo ""

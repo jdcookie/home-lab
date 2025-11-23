@@ -23,14 +23,19 @@ if ! command -v ansible &> /dev/null; then
             exit 1
         fi
     elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        # Linux
+        # Linux - use sudo if available and not root
+        SUDO=""
+        if [ "$EUID" -ne 0 ] && command -v sudo &> /dev/null; then
+            SUDO="sudo"
+        fi
+
         if command -v apt-get &> /dev/null; then
-            sudo apt-get update
-            sudo apt-get install -y ansible
+            $SUDO apt-get update
+            $SUDO apt-get install -y ansible
         elif command -v dnf &> /dev/null; then
-            sudo dnf install -y ansible
+            $SUDO dnf install -y ansible
         elif command -v yum &> /dev/null; then
-            sudo yum install -y ansible
+            $SUDO yum install -y ansible
         else
             echo "Please install Ansible manually for your distribution"
             exit 1

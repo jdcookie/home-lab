@@ -59,7 +59,7 @@
 
 - name: Deploy custom DNS records
   template:
-    src: pihole-custom.list.j2
+    src: "{{ playbook_dir }}/../templates/pihole-custom.list.j2"
     dest: /etc/pihole/custom.list
     mode: '0644'
   notify: restart pihole-FTL

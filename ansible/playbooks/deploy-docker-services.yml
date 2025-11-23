@@ -80,10 +80,10 @@
         mode: '0600'
 
     - name: Start N8N
-      docker_compose:
+      community.docker.docker_compose_v2:
         project_src: "{{ compose_base_path }}/n8n"
         state: present
-        pull: yes
+        pull: always
 
     - name: N8N deployment information
       debug:
@@ -108,10 +108,10 @@
         mode: '0600'
 
     - name: Start Portainer
-      docker_compose:
+      community.docker.docker_compose_v2:
         project_src: "{{ compose_base_path }}/portainer"
         state: present
-        pull: yes
+        pull: always
 
     - name: Portainer deployment information
       debug:
@@ -136,10 +136,10 @@
         mode: '0600'
 
     - name: Start Uptime Kuma
-      docker_compose:
+      community.docker.docker_compose_v2:
         project_src: "{{ compose_base_path }}/monitoring"
         state: present
-        pull: yes
+        pull: always
 
     - name: Uptime Kuma deployment information
       debug:

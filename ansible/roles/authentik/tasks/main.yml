@@ -24,10 +24,10 @@
     - certs
 
 - name: Start Authentik services
-  docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ compose_base_path }}/authentik"
     state: present
-    pull: yes
+    pull: always
   register: authentik_output
 
 - name: Wait for Authentik to be ready

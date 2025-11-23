@@ -20,7 +20,7 @@
     mode: '0755'
 
 - name: Start Immich services
-  docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ compose_base_path }}/immich"
     state: present
-    pull: yes
+    pull: always

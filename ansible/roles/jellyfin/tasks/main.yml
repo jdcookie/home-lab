@@ -29,7 +29,7 @@
     mode: '0755'
 
 - name: Start Jellyfin service
-  docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ compose_base_path }}/jellyfin"
     state: present
-    pull: yes
+    pull: always

@@ -65,6 +65,13 @@
     insertafter: '^\[misc\]'
   notify: restart pihole-FTL
 
+- name: Configure PiHole webserver domain
+  lineinfile:
+    path: /etc/pihole/pihole.toml
+    regexp: '^  domain = '
+    line: '  domain = "{{ pihole_url }}"'
+  notify: restart pihole-FTL
+
 - name: Deploy custom DNS records via dnsmasq
   copy:
     content: |
@@ -87,7 +94,6 @@
   copy:
     content: |
       domain={{ homelab_domain }}
-      expand-hosts
     dest: /etc/dnsmasq.d/02-homelab.conf
     mode: '0644'
   notify: restart pihole-FTL

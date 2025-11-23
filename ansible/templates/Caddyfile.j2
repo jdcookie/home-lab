@@ -45,7 +45,7 @@
 
 # Portainer Container Management
 {{ portainer_url }} {
-    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:9443 {
+    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:9444 {
         header_up Host {upstream_hostport}
         header_up X-Real-IP {remote_host}
         header_up X-Forwarded-For {remote_host}

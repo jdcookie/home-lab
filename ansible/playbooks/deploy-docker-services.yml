@@ -105,7 +105,9 @@
 
     - name: Create Portainer .env file
       copy:
-        content: "TZ={{ timezone }}\n"
+        content: |
+          TZ={{ timezone }}
+          HOMELAB_DOMAIN={{ homelab_domain }}
         dest: "{{ compose_base_path }}/portainer/.env"
         mode: '0600'
 

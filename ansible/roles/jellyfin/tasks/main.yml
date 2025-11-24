@@ -18,6 +18,8 @@
     path: "{{ compose_base_path }}/jellyfin/{{ item }}"
     state: directory
     mode: '0755'
+    owner: '1000'
+    group: '1000'
   loop:
     - config
     - cache

@@ -14,6 +14,7 @@ services:
       - "9444:9443"
     environment:
       - TZ=${TZ:-America/New_York}
+    command: --http-enabled --csrf-trusted-origins=https://portainer.${HOMELAB_DOMAIN}
     networks:
       - homelab
 

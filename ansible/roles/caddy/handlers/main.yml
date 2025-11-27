@@ -1,7 +1,13 @@
 ---
 # Caddy role handlers
 
-- name: reload caddy
+- name: restart caddy
   systemd:
     name: caddy
     state: restarted
+    daemon_reload: yes
+
+- name: reload caddy
+  systemd:
+    name: caddy
+    state: reloaded

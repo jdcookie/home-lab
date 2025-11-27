@@ -39,3 +39,10 @@ backup_path: "/opt/backups"
 # Backup configuration
 backup_retention_days: 30
 backup_schedule: "0 2 * * *"  # Daily at 2 AM
+
+# Let's Encrypt configuration
+letsencrypt_email: "{{ lookup('pipe', 'grep ^ADMIN_EMAIL= ../../.env | cut -d= -f2') | default('admin@example.com', true) }}"
+
+# DNS API credentials (for Let's Encrypt DNS challenge)
+dns_api_key: "{{ lookup('pipe', 'grep ^DNS_API_KEY= ../../.env | cut -d= -f2') | default('', true) }}"
+dns_secret_key: "{{ lookup('pipe', 'grep ^DNS_SECRET_KEY= ../../.env | cut -d= -f2') | default('', true) }}"

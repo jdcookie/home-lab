@@ -3,9 +3,14 @@
 
 # Global options
 {
-    # Use internal certificates for homelab (self-signed)
-    # For public domains, remove this and add email for Let's Encrypt
-    local_certs
+    # Let's Encrypt email for certificate notifications
+    email {{ letsencrypt_email }}
+
+    # Use DNS challenge for certificate verification
+    acme_dns porkbun {
+        api_key {env.DNS_API_KEY}
+        api_secret_key {env.DNS_SECRET_KEY}
+    }
 
     log {
         output file /var/log/caddy/access.log

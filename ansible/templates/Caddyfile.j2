@@ -6,20 +6,25 @@
     # Let's Encrypt email for certificate notifications
     email {{ letsencrypt_email }}
 
-    # Use DNS challenge for certificate verification
-    acme_dns porkbun {
-        api_key {env.DNS_API_KEY}
-        api_secret_key {env.DNS_SECRET_KEY}
-    }
-
     log {
         output file /var/log/caddy/access.log
         format console
     }
 }
 
+# Enable ACME DNS challenge for all sites
+(tls_dns) {
+    tls {
+        dns porkbun {
+            api_key {env.DNS_API_KEY}
+            api_secret_key {env.DNS_SECRET_KEY}
+        }
+    }
+}
+
 # Authentik SSO
 {{ authentik_url }} {
+    import tls_dns
     reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:9000 {
         header_up Host {upstream_hostport}
         header_up X-Real-IP {remote_host}
@@ -30,6 +35,7 @@
 
 # Jellyfin Media Server
 {{ jellyfin_url }} {
+    import tls_dns
     reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:8096 {
         header_up Host {upstream_hostport}
         header_up X-Real-IP {remote_host}
@@ -40,6 +46,7 @@
 
 # N8N Workflow Automation
 {{ n8n_url }} {
+    import tls_dns
     reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:5678 {
         header_up Host {upstream_hostport}
         header_up X-Real-IP {remote_host}
@@ -50,6 +57,7 @@
 
 # Portainer Container Management
 {{ portainer_url }} {
+    import tls_dns
     reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:9444 {
         header_up Host {upstream_hostport}
         header_up X-Real-IP {remote_host}
@@ -63,6 +71,7 @@
 
 # Uptime Kuma Monitoring
 {{ uptime_url }} {
+    import tls_dns
     reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:3001 {
         header_up Host {upstream_hostport}
         header_up X-Real-IP {remote_host}
@@ -73,6 +82,7 @@
 
 # PiHole Admin Interface
 {{ pihole_url }} {
+    import tls_dns
     reverse_proxy {{ hostvars['pihole']['ansible_host'] }}:80 {
         header_up Host {upstream_hostport}
         header_up X-Real-IP {remote_host}

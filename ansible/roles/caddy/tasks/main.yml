@@ -9,39 +9,36 @@
       - apt-transport-https
       - curl
       - gnupg
-      - golang-go
+      - tar
     state: present
     update_cache: yes
 
-- name: Check if xcaddy is installed
-  stat:
-    path: /usr/local/bin/xcaddy
-  register: xcaddy_installed
-
-- name: Install xcaddy
-  shell: |
-    go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
-    cp /root/go/bin/xcaddy /usr/local/bin/xcaddy
-  when: not xcaddy_installed.stat.exists
-
-- name: Check if custom Caddy with DNS plugin exists
+- name: Check if custom Caddy exists
   stat:
     path: /usr/local/bin/caddy
   register: custom_caddy
 
-- name: Build Caddy with Porkbun DNS plugin
-  shell: |
-    xcaddy build --output /usr/local/bin/caddy --with github.com/caddy-dns/porkbun
-  args:
-    creates: /usr/local/bin/caddy
+- name: Download Caddy with Porkbun plugin from custom build
+  get_url:
+    url: "https://caddyserver.com/api/download?os=linux&arch=amd64&p=github.com%2Fcaddy-dns%2Fporkbun"
+    dest: /tmp/caddy
+    mode: '0755'
   when: not custom_caddy.stat.exists
 
-- name: Set Caddy binary permissions
-  file:
-    path: /usr/local/bin/caddy
+- name: Move Caddy to /usr/local/bin
+  copy:
+    src: /tmp/caddy
+    dest: /usr/local/bin/caddy
+    remote_src: yes
     mode: '0755'
     owner: root
     group: root
+  when: not custom_caddy.stat.exists
+
+- name: Remove temporary Caddy download
+  file:
+    path: /tmp/caddy
+    state: absent
 
 - name: Create Caddy user
   user:

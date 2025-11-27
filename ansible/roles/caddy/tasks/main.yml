@@ -20,9 +20,10 @@
 
 - name: Download Caddy with Porkbun plugin from custom build
   get_url:
-    url: "https://caddyserver.com/api/download?os=linux&arch=amd64&p=github.com%2Fcaddy-dns%2Fporkbun"
+    url: "https://caddyserver.com/api/download?os=linux&arch=amd64&p=github.com/caddy-dns/porkbun"
     dest: /tmp/caddy
     mode: '0755'
+    force: yes
   when: not custom_caddy.stat.exists
 
 - name: Move Caddy to /usr/local/bin

@@ -12,7 +12,7 @@
   tasks:
     - name: Display PiHole information
       debug:
-        msg: "PiHole deployed at {{ ansible_host }} - Access at http://{{ pihole_url }}/admin"
+        msg: "PiHole deployed at {{ ansible_host }} - Access at https://{{ pihole_url }}/admin"
 
     - name: Reminder to set PiHole password
       debug:

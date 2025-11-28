@@ -5,7 +5,7 @@
 {{ hostvars['pve']['ansible_host'] }} proxmox.{{ homelab_domain }}
 
 # Infrastructure Services
-{{ hostvars['pihole']['ansible_host'] }} {{ pihole_url }}
+{{ hostvars['caddy']['ansible_host'] }} {{ pihole_url }}
 {{ hostvars['caddy']['ansible_host'] }} {{ caddy_url }} proxy.{{ homelab_domain }}
 
 # Application Services (via Caddy reverse proxy)

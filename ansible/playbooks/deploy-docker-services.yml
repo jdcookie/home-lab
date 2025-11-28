@@ -3,8 +3,8 @@
 
 - name: Setup Docker on services host
   hosts: docker_hosts
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
 
   roles:
     - docker
@@ -16,8 +16,8 @@
 
 - name: Deploy Authentik SSO
   hosts: docker_hosts
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
   vars_files:
     - ../inventory/group_vars/vault.yml
 
@@ -31,8 +31,8 @@
 
 - name: Deploy Jellyfin
   hosts: docker_hosts
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
 
   roles:
     - jellyfin
@@ -59,8 +59,8 @@
 
 - name: Deploy N8N
   hosts: docker_hosts
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
 
   tasks:
     - name: Create N8N directory
@@ -93,8 +93,8 @@
 
 - name: Deploy Portainer
   hosts: docker_hosts
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
 
   tasks:
     - name: Copy Portainer docker-compose file
@@ -123,8 +123,8 @@
 
 - name: Deploy Uptime Kuma
   hosts: docker_hosts
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
 
   tasks:
     - name: Copy Uptime Kuma docker-compose file

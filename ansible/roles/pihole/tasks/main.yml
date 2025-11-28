@@ -78,7 +78,7 @@
       # Custom DNS records for homelab
       # Managed by Ansible - DO NOT EDIT MANUALLY
       address=/proxmox.{{ homelab_domain }}/{{ hostvars['pve']['ansible_host'] }}
-      address=/{{ pihole_url }}/{{ hostvars['pihole']['ansible_host'] }}
+      address=/{{ pihole_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ caddy_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ authentik_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ jellyfin_url }}/{{ hostvars['caddy']['ansible_host'] }}

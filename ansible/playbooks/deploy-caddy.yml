@@ -19,7 +19,9 @@
         msg:
           - "Authentik SSO: https://{{ authentik_url }}"
           - "Jellyfin: https://{{ jellyfin_url }}"
-          - "Immich: https://{{ immich_url }}"
+          - "N8N: https://{{ n8n_url }}"
           - "Portainer: https://{{ portainer_url }}"
           - "Uptime Kuma: https://{{ uptime_url }}"
           - "PiHole: https://{{ pihole_url }}"
+          - "Netdata: https://{{ netdata_url }}"
+          - "TrueNAS: https://{{ truenas_url }}"

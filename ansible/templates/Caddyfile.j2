@@ -101,3 +101,14 @@
         header_up X-Forwarded-Proto {scheme}
     }
 }
+
+# TrueNAS Storage
+{{ truenas_url }} {
+    import tls_dns
+    reverse_proxy {{ hostvars['truenas']['ansible_host'] }}:80 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}

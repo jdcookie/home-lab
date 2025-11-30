@@ -90,3 +90,14 @@
         header_up X-Forwarded-Proto {scheme}
     }
 }
+
+# Netdata Monitoring
+{{ netdata_url }} {
+    import tls_dns
+    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:19999 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}

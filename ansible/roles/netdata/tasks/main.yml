@@ -1,0 +1,35 @@
+---
+# Netdata monitoring deployment
+
+- name: Create Netdata directory
+  file:
+    path: "{{ compose_base_path }}/netdata"
+    state: directory
+    mode: '0755'
+
+- name: Copy Netdata docker-compose file
+  copy:
+    src: "{{ playbook_dir }}/../../compose/netdata/docker-compose.yml"
+    dest: "{{ compose_base_path }}/netdata/docker-compose.yml"
+    mode: '0644'
+
+- name: Create Netdata .env file
+  template:
+    src: netdata.env.j2
+    dest: "{{ compose_base_path }}/netdata/.env"
+    mode: '0600'
+
+- name: Start Netdata
+  community.docker.docker_compose_v2:
+    project_src: "{{ compose_base_path }}/netdata"
+    state: present
+    pull: always
+
+- name: Wait for Netdata to be ready
+  uri:
+    url: "http://localhost:19999/api/v1/info"
+    status_code: 200
+  register: netdata_health
+  until: netdata_health.status == 200
+  retries: 12
+  delay: 5

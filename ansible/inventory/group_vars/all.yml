@@ -27,6 +27,7 @@ jellyfin_url: "jellyfin.{{ homelab_domain }}"
 n8n_url: "n8n.{{ homelab_domain }}"
 portainer_url: "portainer.{{ homelab_domain }}"
 uptime_url: "status.{{ homelab_domain }}"
+netdata_url: "netdata.{{ homelab_domain }}"
 
 # Future services (deployment disabled, but URL defined for templates)
 immich_url: "immich.{{ homelab_domain }}"

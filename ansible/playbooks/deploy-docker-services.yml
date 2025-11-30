@@ -148,3 +148,16 @@
     - name: Uptime Kuma deployment information
       debug:
         msg: "Uptime Kuma deployed - Access at https://{{ uptime_url }}"
+
+- name: Deploy Netdata
+  hosts: docker_hosts
+  become: true
+  gather_facts: true
+
+  roles:
+    - netdata
+
+  tasks:
+    - name: Netdata deployment information
+      debug:
+        msg: "Netdata deployed - Access at https://{{ netdata_url }}"

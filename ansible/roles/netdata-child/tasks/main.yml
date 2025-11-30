@@ -19,16 +19,29 @@
     creates: /usr/sbin/netdata
   when: not netdata_installed.stat.exists
 
-- name: Wait for Netdata config directory to exist
-  wait_for:
-    path: /etc/netdata
-    state: present
-    timeout: 60
+- name: Find Netdata config directory
+  shell: |
+    if [ -d /etc/netdata ]; then echo "/etc/netdata"
+    elif [ -d /opt/netdata/etc/netdata ]; then echo "/opt/netdata/etc/netdata"
+    else netdata -W buildinfo 2>/dev/null | grep 'Configure' | grep -oP "prefix=\K[^ ]+" | xargs -I{} echo "{}/etc/netdata" || echo "/opt/netdata/etc/netdata"
+    fi
+  register: netdata_config_dir
+  changed_when: false
+
+- name: Display Netdata config directory
+  debug:
+    msg: "Netdata config directory: {{ netdata_config_dir.stdout }}"
+
+- name: Ensure Netdata config directory exists
+  file:
+    path: "{{ netdata_config_dir.stdout }}"
+    state: directory
+    mode: '0755'
 
 - name: Configure Netdata streaming to parent
   template:
     src: stream.conf.j2
-    dest: /etc/netdata/stream.conf
+    dest: "{{ netdata_config_dir.stdout }}/stream.conf"
     owner: netdata
     group: netdata
     mode: '0640'

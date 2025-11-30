@@ -1,0 +1,90 @@
+---
+# TrueNAS VM creation with NVMe passthrough
+
+- name: Check if TrueNAS ISO exists
+  stat:
+    path: "/var/lib/vz/template/iso/{{ truenas_iso }}"
+  register: truenas_iso_exists
+
+- name: Download TrueNAS SCALE ISO
+  get_url:
+    url: "{{ truenas_iso_url }}"
+    dest: "/var/lib/vz/template/iso/{{ truenas_iso }}"
+    mode: '0644'
+  when: not truenas_iso_exists.stat.exists
+
+- name: Check if TrueNAS VM exists
+  shell: qm status {{ truenas_vm_id }}
+  register: vm_exists
+  failed_when: false
+  changed_when: false
+
+- name: Create TrueNAS VM
+  shell: |
+    qm create {{ truenas_vm_id }} \
+      --name truenas \
+      --memory {{ truenas_memory }} \
+      --cores {{ truenas_cores }} \
+      --cpu host \
+      --net0 virtio,bridge=vmbr0 \
+      --scsihw virtio-scsi-pci \
+      --boot order=scsi0 \
+      --ostype l26 \
+      --agent enabled=1
+  when: vm_exists.rc != 0
+
+- name: Add boot disk to TrueNAS VM
+  shell: |
+    qm set {{ truenas_vm_id }} \
+      --scsi0 {{ truenas_storage }}:{{ truenas_boot_disk_size }},ssd=1
+  when: vm_exists.rc != 0
+
+- name: Attach TrueNAS ISO
+  shell: |
+    qm set {{ truenas_vm_id }} \
+      --cdrom /var/lib/vz/template/iso/{{ truenas_iso }}
+  when: vm_exists.rc != 0
+
+- name: Set boot order to CD first for initial install
+  shell: |
+    qm set {{ truenas_vm_id }} \
+      --boot order=ide2\;scsi0
+  when: vm_exists.rc != 0
+
+- name: Passthrough first NVMe drive
+  shell: |
+    qm set {{ truenas_vm_id }} \
+      --scsi1 /dev/disk/by-id/{{ truenas_nvme_drive_1 }},size=0
+  when:
+    - vm_exists.rc != 0
+    - truenas_nvme_drive_1 is defined
+
+- name: Passthrough second NVMe drive
+  shell: |
+    qm set {{ truenas_vm_id }} \
+      --scsi2 /dev/disk/by-id/{{ truenas_nvme_drive_2 }},size=0
+  when:
+    - vm_exists.rc != 0
+    - truenas_nvme_drive_2 is defined
+
+- name: Enable QEMU guest agent
+  shell: qm set {{ truenas_vm_id }} --agent 1
+  when: vm_exists.rc != 0
+
+- name: Start TrueNAS VM
+  shell: qm start {{ truenas_vm_id }}
+  when: vm_exists.rc != 0
+
+- name: Display TrueNAS setup instructions
+  debug:
+    msg:
+      - "TrueNAS VM created with ID {{ truenas_vm_id }}"
+      - ""
+      - "Next steps:"
+      - "1. Open Proxmox console for VM {{ truenas_vm_id }}"
+      - "2. Complete TrueNAS installation (install to the 32GB boot disk)"
+      - "3. After install, remove ISO: qm set {{ truenas_vm_id }} --cdrom none"
+      - "4. Reboot and access TrueNAS at https://{{ truenas_ip }}"
+      - "5. Create ZFS mirror pool with the 2x 4TB NVMe drives"
+      - "6. Create datasets: photos, videos"
+      - "7. Configure NFS shares"

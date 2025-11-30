@@ -28,6 +28,20 @@ n8n_url: "n8n.{{ homelab_domain }}"
 portainer_url: "portainer.{{ homelab_domain }}"
 uptime_url: "status.{{ homelab_domain }}"
 netdata_url: "netdata.{{ homelab_domain }}"
+truenas_url: "truenas.{{ homelab_domain }}"
+
+# TrueNAS VM configuration
+truenas_vm_id: 201
+truenas_memory: 16384
+truenas_cores: 4
+truenas_storage: local-lvm
+truenas_boot_disk_size: 32
+truenas_iso: "TrueNAS-SCALE-24.04.2.5.iso"
+truenas_iso_url: "https://download.truenas.com/TrueNAS-SCALE-Dragonfish/24.04.2.5/TrueNAS-SCALE-24.04.2.5.iso"
+truenas_ip: "{{ lookup('pipe', 'grep ^TRUENAS_IP= ../../.env | cut -d= -f2') | default('192.168.1.60', true) }}"
+# NVMe drives for passthrough - set these after running: ls -la /dev/disk/by-id/ | grep nvme
+truenas_nvme_drive_1: "{{ lookup('pipe', 'grep ^TRUENAS_NVME_1= ../../.env | cut -d= -f2') | default('', true) }}"
+truenas_nvme_drive_2: "{{ lookup('pipe', 'grep ^TRUENAS_NVME_2= ../../.env | cut -d= -f2') | default('', true) }}"
 
 # Netdata streaming API key (generate with: uuidgen)
 # For production, move this to vault.yml

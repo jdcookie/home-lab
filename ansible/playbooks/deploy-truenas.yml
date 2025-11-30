@@ -1,0 +1,38 @@
+---
+# Deploy TrueNAS VM with NVMe passthrough
+
+- name: Create TrueNAS VM on Proxmox
+  hosts: proxmox
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Validate NVMe drives are configured
+      assert:
+        that:
+          - truenas_nvme_drive_1 != ''
+          - truenas_nvme_drive_2 != ''
+        fail_msg: |
+          NVMe drives not configured!
+
+          Run on Proxmox: ls -la /dev/disk/by-id/ | grep nvme
+
+          Then add to .env:
+            TRUENAS_NVME_1=nvme-BRAND_MODEL_SERIAL1
+            TRUENAS_NVME_2=nvme-BRAND_MODEL_SERIAL2
+
+          Use the disk IDs (not partition IDs like -part1)
+
+  roles:
+    - truenas
+
+  tasks:
+    - name: TrueNAS deployment summary
+      debug:
+        msg:
+          - "========================================"
+          - "TrueNAS VM {{ truenas_vm_id }} created!"
+          - "========================================"
+          - ""
+          - "Access Proxmox console to complete installation."
+          - "After install, TrueNAS will be at: https://{{ truenas_url }}"

@@ -14,6 +14,7 @@
 {{ hostvars['caddy']['ansible_host'] }} {{ n8n_url }}
 {{ hostvars['caddy']['ansible_host'] }} {{ portainer_url }}
 {{ hostvars['caddy']['ansible_host'] }} {{ uptime_url }}
+{{ hostvars['caddy']['ansible_host'] }} {{ netdata_url }}
 
 # Docker host direct access (optional)
 {{ hostvars['docker-services']['ansible_host'] }} docker.{{ homelab_domain }}

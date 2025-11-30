@@ -85,6 +85,7 @@
       address=/{{ n8n_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ portainer_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ uptime_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ netdata_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/docker.{{ homelab_domain }}/{{ hostvars['docker-services']['ansible_host'] }}
     dest: /etc/dnsmasq.d/99-homelab-dns.conf
     mode: '0644'

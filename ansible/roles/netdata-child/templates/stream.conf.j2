@@ -1,0 +1,18 @@
+# Netdata Child Streaming Configuration
+# Streams metrics to the parent node
+
+[stream]
+    # Enable streaming to parent
+    enabled = yes
+    # Parent node destination (Docker host running Netdata)
+    destination = {{ hostvars['docker-services']['ansible_host'] }}:19999
+    # API key for authentication (must match parent's stream.conf)
+    api key = {{ netdata_stream_api_key }}
+    # Timeout for connection attempts
+    timeout seconds = 60
+    # Buffer to handle network issues
+    buffer size bytes = 10485760
+    # Reconnect if connection is lost
+    reconnect delay seconds = 5
+    # Send all charts to parent
+    send charts matching = *

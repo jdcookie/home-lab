@@ -1,0 +1,5 @@
+---
+- name: restart netdata
+  community.docker.docker_compose_v2:
+    project_src: "{{ compose_base_path }}/netdata"
+    state: restarted

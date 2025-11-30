@@ -1,0 +1,34 @@
+---
+# Netdata child installation (streams to parent)
+
+- name: Check if Netdata is installed
+  stat:
+    path: /usr/sbin/netdata
+  register: netdata_installed
+
+- name: Download Netdata kickstart script
+  get_url:
+    url: https://get.netdata.cloud/kickstart.sh
+    dest: /tmp/netdata-kickstart.sh
+    mode: '0755'
+  when: not netdata_installed.stat.exists
+
+- name: Install Netdata
+  command: /tmp/netdata-kickstart.sh --stable-channel --dont-wait
+  when: not netdata_installed.stat.exists
+  notify: restart netdata-child
+
+- name: Configure Netdata streaming to parent
+  template:
+    src: stream.conf.j2
+    dest: /etc/netdata/stream.conf
+    owner: netdata
+    group: netdata
+    mode: '0640'
+  notify: restart netdata-child
+
+- name: Ensure Netdata service is enabled and started
+  systemd:
+    name: netdata
+    enabled: yes
+    state: started

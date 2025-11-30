@@ -15,6 +15,8 @@ services:
       - netdataconfig:/etc/netdata
       - netdatalib:/var/lib/netdata
       - netdatacache:/var/cache/netdata
+      # Custom streaming config
+      - ./config/stream.conf:/etc/netdata/stream.conf:ro
       # Host monitoring
       - /etc/passwd:/host/etc/passwd:ro
       - /etc/group:/host/etc/group:ro

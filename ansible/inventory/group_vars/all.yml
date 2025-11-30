@@ -29,6 +29,10 @@ portainer_url: "portainer.{{ homelab_domain }}"
 uptime_url: "status.{{ homelab_domain }}"
 netdata_url: "netdata.{{ homelab_domain }}"
 
+# Netdata streaming API key (generate with: uuidgen)
+# For production, move this to vault.yml
+netdata_stream_api_key: "{{ lookup('pipe', 'grep ^NETDATA_STREAM_API_KEY= ../../.env | cut -d= -f2') | default('11111111-2222-3333-4444-555555555555', true) }}"
+
 # Future services (deployment disabled, but URL defined for templates)
 immich_url: "immich.{{ homelab_domain }}"
 

@@ -1,0 +1,29 @@
+---
+# Deploy Netdata monitoring infrastructure
+# Parent on Docker host, Child on Proxmox
+
+- name: Deploy Netdata Parent (Docker host)
+  hosts: docker_hosts
+  become: true
+  gather_facts: true
+
+  roles:
+    - netdata
+
+  tasks:
+    - name: Netdata parent deployment information
+      debug:
+        msg: "Netdata parent deployed - Access at https://{{ netdata_url }}"
+
+- name: Deploy Netdata Child (Proxmox)
+  hosts: proxmox
+  become: true
+  gather_facts: true
+
+  roles:
+    - netdata-child
+
+  tasks:
+    - name: Netdata child deployment information
+      debug:
+        msg: "Netdata child deployed on Proxmox - Streaming to {{ hostvars['docker-services']['ansible_host'] }}:19999"

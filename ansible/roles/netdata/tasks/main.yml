@@ -1,9 +1,15 @@
 ---
-# Netdata monitoring deployment
+# Netdata monitoring deployment (Parent node)
 
 - name: Create Netdata directory
   file:
     path: "{{ compose_base_path }}/netdata"
+    state: directory
+    mode: '0755'
+
+- name: Create Netdata config directory
+  file:
+    path: "{{ compose_base_path }}/netdata/config"
     state: directory
     mode: '0755'
 
@@ -18,6 +24,13 @@
     src: netdata.env.j2
     dest: "{{ compose_base_path }}/netdata/.env"
     mode: '0600'
+
+- name: Configure Netdata as streaming parent
+  template:
+    src: stream-parent.conf.j2
+    dest: "{{ compose_base_path }}/netdata/config/stream.conf"
+    mode: '0644'
+  notify: restart netdata
 
 - name: Start Netdata
   community.docker.docker_compose_v2:

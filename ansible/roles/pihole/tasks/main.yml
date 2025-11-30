@@ -69,7 +69,7 @@
   lineinfile:
     path: /etc/pihole/pihole.toml
     regexp: '^  domain = '
-    line: '  domain = "{{ pihole_url }}"'
+    line: '  domain = "pi.hole"'
   notify: restart pihole-FTL
 
 - name: Deploy custom DNS records via dnsmasq

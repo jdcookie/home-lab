@@ -14,9 +14,16 @@
   when: not netdata_installed.stat.exists
 
 - name: Install Netdata
-  command: /tmp/netdata-kickstart.sh --stable-channel --dont-wait
+  shell: /tmp/netdata-kickstart.sh --stable-channel --dont-wait --non-interactive
+  args:
+    creates: /usr/sbin/netdata
   when: not netdata_installed.stat.exists
-  notify: restart netdata-child
+
+- name: Wait for Netdata config directory to exist
+  wait_for:
+    path: /etc/netdata
+    state: present
+    timeout: 60
 
 - name: Configure Netdata streaming to parent
   template:

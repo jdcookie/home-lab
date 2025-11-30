@@ -106,9 +106,11 @@
 {{ truenas_url }} {
     import tls_dns
     reverse_proxy {{ hostvars['truenas']['ansible_host'] }}:80 {
-        header_up Host {upstream_hostport}
+        header_up Host {{ truenas_url }}
         header_up X-Real-IP {remote_host}
         header_up X-Forwarded-For {remote_host}
-        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Proto https
     }
+    header Location "http://{{ hostvars['truenas']['ansible_host'] }}:80" "https://{{ truenas_url }}"
+    header Location "http://{{ hostvars['truenas']['ansible_host'] }}" "https://{{ truenas_url }}"
 }

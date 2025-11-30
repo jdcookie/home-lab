@@ -1,0 +1,16 @@
+---
+# Mount NFS shares from TrueNAS on Docker host
+
+- name: Configure NFS mounts
+  hosts: docker_hosts
+  become: true
+  gather_facts: true
+
+  roles:
+    - nfs-mounts
+
+  tasks:
+    - name: Display mounted shares
+      debug:
+        msg: "Mounted {{ item.src }} at {{ item.mount_point }}"
+      loop: "{{ nfs_mounts }}"

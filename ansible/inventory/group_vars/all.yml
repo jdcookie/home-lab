@@ -47,6 +47,14 @@ truenas_nvme_drive_2: "{{ lookup('pipe', 'grep ^TRUENAS_NVME_2= ../../.env | cut
 # For production, move this to vault.yml
 netdata_stream_api_key: "{{ lookup('pipe', 'grep ^NETDATA_STREAM_API_KEY= ../../.env | cut -d= -f2') | default('11111111-2222-3333-4444-555555555555', true) }}"
 
+# NFS mounts from TrueNAS
+truenas_pool_name: "{{ lookup('pipe', 'grep ^TRUENAS_POOL_NAME= ../../.env | cut -d= -f2') | default('tank', true) }}"
+nfs_mounts:
+  - src: "{{ hostvars['truenas']['ansible_host'] }}:/mnt/{{ truenas_pool_name }}/video"
+    mount_point: /mnt/video
+  - src: "{{ hostvars['truenas']['ansible_host'] }}:/mnt/{{ truenas_pool_name }}/photos"
+    mount_point: /mnt/photos
+
 # Future services (deployment disabled, but URL defined for templates)
 immich_url: "immich.{{ homelab_domain }}"
 

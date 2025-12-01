@@ -80,7 +80,6 @@
       address=/proxmox.{{ homelab_domain }}/{{ hostvars['pve']['ansible_host'] }}
       address=/{{ pihole_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ caddy_url }}/{{ hostvars['caddy']['ansible_host'] }}
-      address=/{{ authentik_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ jellyfin_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ n8n_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ portainer_url }}/{{ hostvars['caddy']['ansible_host'] }}

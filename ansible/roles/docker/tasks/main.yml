@@ -79,7 +79,6 @@
     state: directory
     mode: '0755'
   loop:
-    - authentik
     - jellyfin
     - n8n
     - portainer

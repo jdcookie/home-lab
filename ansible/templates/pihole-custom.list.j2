@@ -9,7 +9,6 @@
 {{ hostvars['caddy']['ansible_host'] }} {{ caddy_url }} proxy.{{ homelab_domain }}
 
 # Application Services (via Caddy reverse proxy)
-{{ hostvars['caddy']['ansible_host'] }} {{ authentik_url }}
 {{ hostvars['caddy']['ansible_host'] }} {{ jellyfin_url }}
 {{ hostvars['caddy']['ansible_host'] }} {{ n8n_url }}
 {{ hostvars['caddy']['ansible_host'] }} {{ portainer_url }}

@@ -53,7 +53,7 @@ This document outlines a modern, maintainable homelab infrastructure using **Inf
 - ✅ **Mature Ecosystem**: Extensive community support, proven in production
 - ✅ **Familiar**: You already know Docker well
 - ✅ **Comprehensive Documentation**: Better service documentation and examples
-- ✅ **Authentik Support**: Better tested with Docker
+- ✅ **Service Support**: Well-tested with common self-hosted apps
 - ✅ **Compose Files**: Declarative, version-controlled service definitions
 - ✅ **Portainer Integration**: Excellent Docker management UI
 
@@ -320,7 +320,6 @@ home-lab/
 │   │   ├── provision-infrastructure.yml
 │   │   ├── deploy-pihole.yml
 │   │   ├── deploy-caddy.yml
-│   │   ├── deploy-authentik.yml
 │   │   ├── deploy-jellyfin.yml
 │   │   ├── deploy-immich.yml
 │   │   └── update-dns.yml
@@ -387,12 +386,7 @@ home-lab/
    └─> ansible-playbook playbooks/deploy-jellyfin.yml
    └─> ansible-playbook playbooks/deploy-immich.yml
 
-7. Configure SSO integrations
-   └─> Set up Authentik applications
-   └─> Configure OIDC/LDAP in each service
-   └─> Test authentication flow
-
-8. Set up monitoring and backups
+7. Set up monitoring and backups
    └─> Deploy Uptime Kuma, Portainer
    └─> Configure backup schedules
    └─> Test restore procedures

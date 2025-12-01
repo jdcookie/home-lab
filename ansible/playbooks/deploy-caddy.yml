@@ -17,7 +17,6 @@
     - name: List configured services
       debug:
         msg:
-          - "Authentik SSO: https://{{ authentik_url }}"
           - "Jellyfin: https://{{ jellyfin_url }}"
           - "N8N: https://{{ n8n_url }}"
           - "Portainer: https://{{ portainer_url }}"

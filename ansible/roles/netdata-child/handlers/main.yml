@@ -1,5 +1,0 @@
----
-- name: restart netdata-child
-  systemd:
-    name: netdata
-    state: restarted

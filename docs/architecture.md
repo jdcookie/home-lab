@@ -2,11 +2,10 @@
 
 ## Executive Summary
 
-This document outlines a modern, maintainable homelab infrastructure using **Infrastructure as Code (IaC)** principles. The design leverages Proxmox as the hypervisor with automated provisioning via Ansible, containerized services using Docker Compose, and centralized authentication through Authentik SSO.
+This document outlines a modern, maintainable homelab infrastructure using **Infrastructure as Code (IaC)** principles. The design leverages Proxmox as the hypervisor with automated provisioning via Ansible, and containerized services using Docker Compose.
 
 **Key Design Principles:**
 - **Infrastructure as Code**: All configurations stored in Git, reproducible deployments
-- **Single Sign-On**: Unified authentication across all services via Authentik
 - **Automated Provisioning**: Ansible-driven setup and configuration management
 - **Container-First**: Docker Compose for service orchestration (familiar, mature, well-documented)
 - **Local DNS Resolution**: PiHole + Caddy for internal service discovery
@@ -22,8 +21,7 @@ This document outlines a modern, maintainable homelab infrastructure using **Inf
 │  ┌───────────────────────────────────────────────────────────┐  │
 │  │  Infrastructure Services (LXC/VM)                         │  │
 │  │  ├─ PiHole (LXC) - DNS + Ad Blocking                     │  │
-│  │  ├─ Caddy (LXC) - Reverse Proxy                          │  │
-│  │  └─ Authentik (Docker) - SSO/Identity Provider           │  │
+│  │  └─ Caddy (LXC) - Reverse Proxy                          │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                   │
 │  ┌───────────────────────────────────────────────────────────┐  │
@@ -149,81 +147,6 @@ immich.<HOMELAB_DOMAIN> {
     reverse_proxy 192.168.1.101:2283
 }
 
-auth.<HOMELAB_DOMAIN> {
-    reverse_proxy 192.168.1.50:9000
-}
-```
-
----
-
-#### 3. Authentik - SSO & Identity Provider
-```yaml
-Type: Docker Compose (on dedicated VM or Proxmox host)
-Resources: 2GB RAM, 2 CPU cores, 10GB storage
-URL: auth.<HOMELAB_DOMAIN>
-Database: PostgreSQL (included in compose)
-Cache: Redis (included in compose)
-```
-
-**Why Authentik?**
-- ✅ **Modern**: Built with modern web technologies (Django, Go)
-- ✅ **Feature-Rich**: OIDC, SAML, LDAP, proxy provider
-- ✅ **Self-Hosted**: Complete control over identity data
-- ✅ **Active Development**: Regular updates and security patches
-- ✅ **Beautiful UI**: Professional admin and user interface
-- ✅ **Flexible**: Supports various authentication flows
-
-**Supported Services:**
-- Jellyfin (LDAP or OIDC)
-- N8N (OIDC)
-- Portainer (OIDC)
-- Proxmox (LDAP)
-- Immich (OIDC) [Future]
-- Any application supporting OIDC/SAML/LDAP
-
-**Setup:**
-```yaml
-# docker-compose.yml for Authentik
-services:
-  postgresql:
-    image: postgres:16-alpine
-    volumes:
-      - database:/var/lib/postgresql/data
-    environment:
-      POSTGRES_PASSWORD: ${PG_PASS}
-      POSTGRES_USER: authentik
-      POSTGRES_DB: authentik
-
-  redis:
-    image: redis:alpine
-
-  authentik-server:
-    image: ghcr.io/goauthentik/server:latest
-    command: server
-    environment:
-      AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: postgresql
-      AUTHENTIK_POSTGRESQL__USER: authentik
-      AUTHENTIK_POSTGRESQL__NAME: authentik
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
-      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
-    ports:
-      - 9000:9000
-      - 9443:9443
-    volumes:
-      - ./media:/media
-      - ./custom-templates:/templates
-
-  authentik-worker:
-    image: ghcr.io/goauthentik/server:latest
-    command: worker
-    environment:
-      AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: postgresql
-      AUTHENTIK_POSTGRESQL__USER: authentik
-      AUTHENTIK_POSTGRESQL__NAME: authentik
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
-      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
 ```
 
 ---
@@ -243,7 +166,6 @@ GPU: Optional hardware acceleration (Intel QuickSync, NVIDIA)
 - Media streaming (movies, TV shows, music)
 - Hardware transcoding support
 - Multiple user profiles
-- LDAP authentication via Authentik
 - Mobile apps available
 
 **Docker Compose:**
@@ -265,11 +187,6 @@ services:
     restart: unless-stopped
 ```
 
-**Authentik Integration:**
-- Configure LDAP authentication plugin
-- Point to `auth.<HOMELAB_DOMAIN>:389`
-- Users log in with Authentik credentials
-
 ---
 
 #### 5. N8N - Workflow Automation
@@ -284,7 +201,6 @@ Ports: 5678
 - Visual workflow automation
 - 400+ integrations
 - Self-hosted alternative to Zapier
-- OIDC authentication via Authentik (optional)
 - Webhook support for external triggers
 
 **Docker Compose:**
@@ -326,7 +242,6 @@ ML: Optional machine learning for face detection
 - Mobile auto-backup
 - Face recognition (optional)
 - Timeline and album organization
-- OIDC authentication via Authentik
 
 ---
 
@@ -366,7 +281,6 @@ Ports: 9000
 - Web UI for Docker management
 - Stack deployment (compose files)
 - Container logs and stats
-- OIDC authentication via Authentik
 
 ---
 
@@ -415,7 +329,6 @@ home-lab/
 │   │   ├── docker/                # Docker installation
 │   │   ├── pihole/                # PiHole setup
 │   │   ├── caddy/                 # Caddy reverse proxy
-│   │   ├── authentik/             # Authentik SSO
 │   │   ├── jellyfin/              # Jellyfin media server
 │   │   └── immich/                # Immich photo management
 │   └── templates/
@@ -423,9 +336,6 @@ home-lab/
 │       ├── docker-compose.*.j2    # Templated compose files
 │       └── pihole-custom.list.j2  # DNS records template
 ├── compose/
-│   ├── authentik/
-│   │   ├── docker-compose.yml
-│   │   └── .env.example
 │   ├── jellyfin/
 │   │   ├── docker-compose.yml
 │   │   └── .env.example
@@ -468,8 +378,6 @@ home-lab/
 4. Deploy core services
    └─> ansible-playbook playbooks/deploy-pihole.yml
    └─> ansible-playbook playbooks/deploy-caddy.yml
-   └─> ansible-playbook playbooks/deploy-authentik.yml
-
 5. Configure DNS and reverse proxy
    └─> Update PiHole DNS records
    └─> Configure Caddyfile with service entries
@@ -504,7 +412,6 @@ Infrastructure:
 ├─ 192.168.1.2       Proxmox Host
 ├─ 192.168.1.10      PiHole (LXC)
 ├─ 192.168.1.11      Caddy (LXC)
-├─ 192.168.1.50      Authentik (Docker/VM)
 
 Services:
 ├─ 192.168.1.100     Jellyfin (Docker/VM)
@@ -525,9 +432,6 @@ Future:
 192.168.1.10   pihole.<HOMELAB_DOMAIN>
 192.168.1.11   proxy.<HOMELAB_DOMAIN>
 
-# Authentication
-192.168.1.50   auth.<HOMELAB_DOMAIN>
-
 # Services
 192.168.1.100  jellyfin.<HOMELAB_DOMAIN>
 192.168.1.105  n8n.<HOMELAB_DOMAIN>
@@ -546,7 +450,6 @@ Future:
 | Proxmox | 8006 | Direct IP | HTTPS |
 | PiHole Admin | 80/443 | pihole.<HOMELAB_DOMAIN> | HTTP/HTTPS |
 | Caddy | 80/443 | proxy.<HOMELAB_DOMAIN> | HTTP/HTTPS |
-| Authentik | 9000/9443 | auth.<HOMELAB_DOMAIN> | HTTP/HTTPS |
 | Jellyfin | 8096 | jellyfin.<HOMELAB_DOMAIN> | HTTP (proxied) |
 | N8N | 5678 | n8n.<HOMELAB_DOMAIN> | HTTP (proxied) |
 | Portainer | 9000 | portainer.<HOMELAB_DOMAIN> | HTTP (proxied) |
@@ -619,11 +522,8 @@ ansible-playbook ansible/playbooks/site.yml --tags radarr
 ## Security Considerations
 
 ### Authentication & Authorization
-- ✅ Centralized authentication via Authentik
-- ✅ OIDC/SAML for supported services
-- ✅ LDAP fallback for legacy services
-- ✅ Strong password policies enforced in Authentik
-- ✅ Optional 2FA/MFA support
+- ✅ Strong password policies
+- ✅ Optional 2FA/MFA support per service
 
 ### Network Security
 - ✅ Internal-only access (no external exposure)
@@ -653,7 +553,6 @@ ansible-playbook playbooks/site.yml --ask-vault-pass
 - ✅ Automated daily backups via Ansible cron
 - ✅ Proxmox backup and replication
 - ✅ Configuration stored in Git
-- ✅ Database backups for Authentik, Immich
 - ✅ Off-site backup to external drive or cloud
 
 ---
@@ -681,28 +580,16 @@ ansible-playbook playbooks/site.yml --ask-vault-pass
 6. Test DNS resolution
 ```
 
-### Day 3: Authentication & Identity
-```
-1. Create Docker host VM
-2. Deploy Authentik
-3. Configure Authentik realm
-4. Create initial user accounts
-5. Test authentication flow
-```
-
-### Day 4-5: Application Services
+### Day 3-4: Application Services
 ```
 1. Deploy Jellyfin
-   └─> Configure LDAP authentication
    └─> Add media libraries
 2. Deploy N8N
    └─> Configure workflows
-   └─> Optionally configure OIDC authentication
 3. Deploy Portainer
-   └─> Configure OIDC authentication
 ```
 
-### Day 6: Monitoring & Hardening
+### Day 5: Monitoring & Hardening
 ```
 1. Deploy Uptime Kuma
 2. Configure service health checks
@@ -813,10 +700,8 @@ ansible-playbook playbooks/backup.yml
 
 ### Short-Term (Next 2 Weeks)
 6. ⬜ Provision PiHole and Caddy LXC containers
-7. ⬜ Deploy Authentik SSO
-8. ⬜ Deploy Jellyfin and Immich
-9. ⬜ Configure SSO integrations
-10. ⬜ Set up monitoring and backups
+7. ⬜ Deploy Jellyfin
+8. ⬜ Set up monitoring and backups
 
 ### Long-Term (1-3 Months)
 11. ⬜ Acquire storage drives for TrueNAS
@@ -833,7 +718,6 @@ ansible-playbook playbooks/backup.yml
 ### Documentation
 - [Ansible Docs](https://docs.ansible.com/)
 - [Proxmox VE Documentation](https://pve.proxmox.com/wiki/Main_Page)
-- [Authentik Documentation](https://goauthentik.io/docs/)
 - [Docker Compose Reference](https://docs.docker.com/compose/)
 - [Caddy Documentation](https://caddyserver.com/docs/)
 - [PiHole Documentation](https://docs.pi-hole.net/)
@@ -862,15 +746,11 @@ Before proceeding, please decide:
    - Where will media files be stored initially? (Local disk, NAS, external?)
    - What size storage do you have for Docker volumes?
 
-3. **Authentik**:
-   - Do you want to require SSO for all services or make it optional?
-   - Do you want to enable 2FA/MFA?
-
-4. **Backup**:
+3. **Backup**:
    - Do you have external storage for backups?
    - How often do you want automated backups?
 
-5. **Ansible Control Node**:
+4. **Ansible Control Node**:
    - Will you run Ansible from your laptop/workstation?
    - Or do you want a dedicated Ansible VM?
 
@@ -884,7 +764,7 @@ This design provides a **modern, maintainable, and professional homelab infrastr
 - **Version-Controlled**: All changes tracked in Git
 - **Maintainable**: Clear structure and documentation
 - **Scalable**: Easy to add new services
-- **Secure**: Centralized authentication via Authentik
+- **Secure**: HTTPS everywhere via Caddy
 - **Professional**: Follows DevOps and SRE best practices
 
 The investment in learning Ansible and setting up this infrastructure will pay dividends in reduced maintenance burden, faster service deployment, and increased reliability.

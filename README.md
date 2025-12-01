@@ -8,11 +8,10 @@ Modern homelab infrastructure managed with Infrastructure as Code using Ansible 
 - **Automation**: Ansible
 - **DNS**: PiHole
 - **Reverse Proxy**: Caddy
-- **SSO**: Authentik
 
 ## Services
 
-**Core**: PiHole, Caddy, Authentik
+**Core**: PiHole, Caddy
 **Applications**: Jellyfin, N8N, Portainer, Uptime Kuma
 **Future**: Immich (requires additional storage)
 
@@ -77,7 +76,6 @@ ssh root@<DOCKER_HOST_IP> docker ps
 ## Service URLs
 
 Replace with your domain:
-- **Authentik**: https://auth.lab.example.com
 - **Jellyfin**: https://jellyfin.lab.example.com
 - **N8N**: https://n8n.lab.example.com
 - **Portainer**: https://portainer.lab.example.com
@@ -92,7 +90,6 @@ Replace with your domain:
 ## Security
 
 - Secrets in Ansible Vault (`ansible/inventory/group_vars/vault.yml`)
-- SSO via Authentik for all services
 - Automatic HTTPS via Caddy
 
 ```bash

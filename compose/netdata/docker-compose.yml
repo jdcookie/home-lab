@@ -6,6 +6,8 @@ services:
     hostname: ${NETDATA_HOSTNAME:-netdata}
     pid: host
     restart: unless-stopped
+    mem_limit: 512m
+    mem_reservation: 128m
     cap_add:
       - SYS_PTRACE
       - SYS_ADMIN

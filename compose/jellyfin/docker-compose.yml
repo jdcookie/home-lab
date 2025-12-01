@@ -4,6 +4,8 @@ services:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
     restart: unless-stopped
+    mem_limit: 4g
+    mem_reservation: 1g
     user: 1000:1000  # UPDATE with your user:group ID
     environment:
       - TZ=${TZ:-America/New_York}

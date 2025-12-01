@@ -2,10 +2,6 @@
 # Example vault file - copy to vault.yml and encrypt with ansible-vault
 # Command: ansible-vault create inventory/group_vars/vault.yml
 
-# Authentik secrets
-authentik_secret_key: "CHANGE-ME-RANDOM-50-CHARS"
-authentik_postgres_password: "CHANGE-ME-SECURE-PASSWORD"
-
 # Jellyfin
 jellyfin_api_key: ""  # Generated after first setup
 

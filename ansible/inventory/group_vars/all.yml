@@ -22,7 +22,6 @@ docker_compose_version: "2.23.0"
 # Service URLs (automatically built from homelab_domain)
 pihole_url: "pihole.{{ homelab_domain }}"
 caddy_url: "proxy.{{ homelab_domain }}"
-authentik_url: "auth.{{ homelab_domain }}"
 jellyfin_url: "jellyfin.{{ homelab_domain }}"
 n8n_url: "n8n.{{ homelab_domain }}"
 portainer_url: "portainer.{{ homelab_domain }}"
@@ -32,7 +31,7 @@ truenas_url: "truenas.{{ homelab_domain }}"
 
 # TrueNAS VM configuration
 truenas_vm_id: 201
-truenas_memory: 16384
+truenas_memory: 8192
 truenas_balloon: 4096  # Minimum RAM (4 GB) - can balloon up to truenas_memory
 truenas_cores: 4
 truenas_storage: local-lvm

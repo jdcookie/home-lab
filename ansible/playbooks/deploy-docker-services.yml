@@ -14,21 +14,6 @@
       debug:
         msg: "Docker installed and configured on {{ ansible_host }}"
 
-- name: Deploy Authentik SSO
-  hosts: docker_hosts
-  become: true
-  gather_facts: true
-  vars_files:
-    - ../inventory/group_vars/vault.yml
-
-  roles:
-    - authentik
-
-  tasks:
-    - name: Authentik deployment information
-      debug:
-        msg: "Authentik deployed - Access at https://{{ authentik_url }}"
-
 - name: Deploy Jellyfin
   hosts: docker_hosts
   become: true

@@ -61,16 +61,12 @@ if [ ! -f ansible/inventory/group_vars/vault.yml ]; then
     cp ansible/inventory/group_vars/vault.yml.example ansible/inventory/group_vars/vault.yml
 
     # Generate secure passwords (hex only to avoid sed issues)
-    AUTHENTIK_SECRET=$(openssl rand -hex 32)
-    AUTHENTIK_PG_PASS=$(openssl rand -hex 24)
     IMMICH_DB_PASS=$(openssl rand -hex 24)
     IMMICH_CLIENT_SECRET=$(openssl rand -hex 24)
     POSTGRES_ROOT_PASS=$(openssl rand -hex 24)
     PIHOLE_PASS=$(openssl rand -hex 12)
 
     # Update vault file with generated passwords using line-specific replacements
-    sed -i.bak "s/authentik_secret_key: \"CHANGE-ME-RANDOM-50-CHARS\"/authentik_secret_key: \"$AUTHENTIK_SECRET\"/" ansible/inventory/group_vars/vault.yml
-    sed -i.bak "s/authentik_postgres_password: \"CHANGE-ME-SECURE-PASSWORD\"/authentik_postgres_password: \"$AUTHENTIK_PG_PASS\"/" ansible/inventory/group_vars/vault.yml
     sed -i.bak "s/immich_db_password: \"CHANGE-ME-SECURE-PASSWORD\"/immich_db_password: \"$IMMICH_DB_PASS\"/" ansible/inventory/group_vars/vault.yml
     sed -i.bak "s/immich_oauth_client_secret: \"CHANGE-ME-CLIENT-SECRET\"/immich_oauth_client_secret: \"$IMMICH_CLIENT_SECRET\"/" ansible/inventory/group_vars/vault.yml
     sed -i.bak "s/postgres_root_password: \"CHANGE-ME-SECURE-PASSWORD\"/postgres_root_password: \"$POSTGRES_ROOT_PASS\"/" ansible/inventory/group_vars/vault.yml

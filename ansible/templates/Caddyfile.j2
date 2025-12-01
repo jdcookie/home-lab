@@ -22,17 +22,6 @@
     }
 }
 
-# Authentik SSO
-{{ authentik_url }} {
-    import tls_dns
-    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:9000 {
-        header_up Host {upstream_hostport}
-        header_up X-Real-IP {remote_host}
-        header_up X-Forwarded-For {remote_host}
-        header_up X-Forwarded-Proto {scheme}
-    }
-}
-
 # Jellyfin Media Server
 {{ jellyfin_url }} {
     import tls_dns

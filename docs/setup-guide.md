@@ -156,7 +156,7 @@ This will:
 2. Deploy and configure PiHole DNS
 3. Deploy and configure Caddy reverse proxy
 4. Install Docker on services VM
-5. Deploy all services (Authentik, Jellyfin, N8N, Portainer, Uptime Kuma)
+5. Deploy all services (Jellyfin, N8N, Portainer, Uptime Kuma)
 
 **Duration**: ~30-45 minutes
 
@@ -172,7 +172,6 @@ ssh root@<DOCKER_HOST_IP>
 docker ps
 
 # You should see:
-# - authentik-postgres, authentik-redis, authentik-server, authentik-worker
 # - jellyfin
 # - n8n
 # - portainer
@@ -196,74 +195,30 @@ nslookup jellyfin.<HOMELAB_DOMAIN> <PIHOLE_IP>
 # Should resolve to <DOCKER_HOST_IP>
 ```
 
-### 3. Configure Authentik SSO
-
-1. Access Authentik: `https://auth.<HOMELAB_DOMAIN>`
-2. Complete initial setup wizard
-3. Create admin account
-4. **Important**: Save recovery tokens securely
-
-#### Create Authentik Applications
-
-##### For Jellyfin (LDAP)
-
-1. Go to Applications → Providers → Create Provider
-2. Select "LDAP Provider"
-3. Name: "Jellyfin LDAP"
-4. Base DN: `dc=ldap,dc=goauthentik,dc=io`
-5. Save and note the bind DN and password
-
-6. Create Application:
-   - Name: Jellyfin
-   - Slug: jellyfin
-   - Provider: Jellyfin LDAP
-   - Launch URL: `https://jellyfin.<HOMELAB_DOMAIN>`
-
-##### For Portainer (OIDC)
-
-Similar to Immich, create OAuth2 provider with:
-- Redirect URIs: `https://portainer.<HOMELAB_DOMAIN>`
-
-### 4. Configure Jellyfin with LDAP
+### 3. Configure Jellyfin
 
 1. Access Jellyfin: `https://jellyfin.<HOMELAB_DOMAIN>`
-2. Complete initial setup
-3. Go to Dashboard → Plugins → Catalog
-4. Install "LDAP Authentication Plugin"
-5. Configure plugin:
-   - LDAP Server: `auth.<HOMELAB_DOMAIN>:389`
-   - Base DN: `dc=ldap,dc=goauthentik,dc=io`
-   - Bind User: (from Authentik)
-   - Bind Password: (from Authentik)
-6. Enable LDAP authentication
-7. Test login with Authentik user
+2. Complete initial setup wizard
+3. Create admin account
+4. Add your media libraries
 
-### 5. Configure N8N
+### 4. Configure N8N
 
 1. Access N8N: `https://n8n.<HOMELAB_DOMAIN>`
 2. Create admin account on first access
 3. N8N is ready for workflow automation
-4. Optionally configure Authentik SSO (OIDC) for centralized authentication
 
-### 6. Configure Portainer with OIDC
+### 5. Configure Portainer
 
 1. Access Portainer: `https://portainer.<HOMELAB_DOMAIN>`
 2. Create admin account
-3. Go to Settings → Authentication
-4. Enable OAuth:
-   - Authorization URL: `https://auth.<HOMELAB_DOMAIN>/application/o/authorize/`
-   - Access Token URL: `https://auth.<HOMELAB_DOMAIN>/application/o/token/`
-   - Resource URL: `https://auth.<HOMELAB_DOMAIN>/application/o/userinfo/`
-   - Client ID: (from Authentik)
-   - Client Secret: (from Authentik)
-5. Save and test
+3. Connect to Docker endpoint (should be auto-detected)
 
-### 7. Set Up Uptime Kuma Monitoring
+### 6. Set Up Uptime Kuma Monitoring
 
 1. Access Uptime Kuma: `https://status.<HOMELAB_DOMAIN>`
 2. Create admin account
 3. Add monitors for each service:
-   - Authentik: https://auth.<HOMELAB_DOMAIN>
    - Jellyfin: https://jellyfin.<HOMELAB_DOMAIN>
    - N8N: https://n8n.<HOMELAB_DOMAIN>
    - Portainer: https://portainer.<HOMELAB_DOMAIN>
@@ -307,21 +262,10 @@ echo "192.168.1.200:/mnt/media /mnt/media nfs defaults 0 0" >> /etc/fstab
 
 - [ ] DNS resolution works for all services
 - [ ] All services accessible via HTTPS
-- [ ] SSO login works for Portainer
-- [ ] LDAP login works for Jellyfin
 - [ ] Jellyfin can scan and play media
 - [ ] N8N workflows execute correctly
 - [ ] Uptime Kuma shows all services as UP
 - [ ] Portainer shows all containers running
-
-### Test SSO Flow
-
-1. Open incognito browser window
-2. Go to `https://portainer.<HOMELAB_DOMAIN>`
-3. Click "Login with OAuth"
-4. Should redirect to Authentik login
-5. Enter Authentik credentials
-6. Should redirect back to Portainer logged in
 
 ### Performance Testing
 
@@ -407,17 +351,6 @@ pct enter 100
 pihole -t
 ```
 
-### Authentik SSO Not Working
-
-```bash
-# Check Authentik logs
-docker logs authentik-server
-docker logs authentik-worker
-
-# Verify issuer URL matches in .env files
-# Should be: https://auth.<HOMELAB_DOMAIN>/application/o/<app-name>/
-```
-
 ### Can't Access Services via Domain Names
 
 1. Check DNS is set to PiHole (<PIHOLE_IP>)
@@ -481,7 +414,7 @@ PiHole already handles internal DNS - no additional setup needed. Services acces
 
 3. Caddy automatically gets Let's Encrypt certificates
 
-**Security**: Enable Authentik SSO, use strong passwords + 2FA, keep services updated.
+**Security**: Use strong passwords, keep services updated.
 
 ### Option 3: VPN Access (Tailscale) - Recommended
 
@@ -501,10 +434,10 @@ PiHole already handles internal DNS - no additional setup needed. Services acces
 
 ```bash
 # Test internal DNS
-dig @<PIHOLE_IP> auth.<HOMELAB_DOMAIN>
+dig @<PIHOLE_IP> jellyfin.<HOMELAB_DOMAIN>
 
 # Test HTTPS access
-curl -I https://auth.<HOMELAB_DOMAIN>
+curl -I https://jellyfin.<HOMELAB_DOMAIN>
 ```
 
 ## Next Steps

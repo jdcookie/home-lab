@@ -24,6 +24,7 @@
     qm create {{ truenas_vm_id }} \
       --name truenas \
       --memory {{ truenas_memory }} \
+      --balloon {{ truenas_balloon | default(0) }} \
       --cores {{ truenas_cores }} \
       --cpu host \
       --net0 virtio,bridge=vmbr0 \

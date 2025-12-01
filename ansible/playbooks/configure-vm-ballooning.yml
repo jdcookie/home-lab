@@ -1,0 +1,33 @@
+---
+# Configure memory ballooning on existing VMs
+# Run: ansible-playbook -i inventory/hosts.yml playbooks/configure-vm-ballooning.yml
+
+- name: Configure memory ballooning for VMs
+  hosts: proxmox
+  gather_facts: false
+
+  tasks:
+    - name: Enable ballooning on Docker Services VM (200)
+      shell: qm set 200 --balloon {{ hostvars['docker-services']['vm_balloon'] }}
+      register: docker_balloon
+      changed_when: docker_balloon.rc == 0
+      failed_when: false
+
+    - name: Enable ballooning on TrueNAS VM (201)
+      shell: qm set {{ truenas_vm_id }} --balloon {{ truenas_balloon }}
+      register: truenas_balloon_result
+      changed_when: truenas_balloon_result.rc == 0
+      failed_when: false
+
+    - name: Display ballooning status
+      debug:
+        msg:
+          - "Memory ballooning configured:"
+          - "  - Docker Services (VM 200): min {{ hostvars['docker-services']['vm_balloon'] }} MB, max {{ hostvars['docker-services']['vm_memory'] }} MB"
+          - "  - TrueNAS (VM {{ truenas_vm_id }}): min {{ truenas_balloon }} MB, max {{ truenas_memory }} MB"
+          - ""
+          - "Ballooning allows VMs to return unused RAM to the host."
+          - "The guest agent must be installed for optimal ballooning."
+          - ""
+          - "Verify with: qm config 200 | grep balloon"
+          - "            qm config 201 | grep balloon"

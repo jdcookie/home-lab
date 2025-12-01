@@ -33,6 +33,7 @@ truenas_url: "truenas.{{ homelab_domain }}"
 # TrueNAS VM configuration
 truenas_vm_id: 201
 truenas_memory: 16384
+truenas_balloon: 4096  # Minimum RAM (4 GB) - can balloon up to truenas_memory
 truenas_cores: 4
 truenas_storage: local-lvm
 truenas_boot_disk_size: 32

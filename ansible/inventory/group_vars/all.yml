@@ -31,8 +31,8 @@ truenas_url: "truenas.{{ homelab_domain }}"
 
 # TrueNAS VM configuration
 truenas_vm_id: 201
-truenas_memory: 8192
-truenas_balloon: 4096  # Minimum RAM (4 GB) - can balloon up to truenas_memory
+truenas_memory: 6144   # 6 GB max - reduced since pool is all-SSD (less ARC needed)
+truenas_balloon: 3072  # Minimum RAM (3 GB) - can balloon up to truenas_memory
 truenas_cores: 4
 truenas_storage: local-lvm
 truenas_boot_disk_size: 32

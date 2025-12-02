@@ -1,0 +1,24 @@
+---
+# Arr stack default variables
+
+# User/Group IDs for container permissions
+arr_puid: "1000"
+arr_pgid: "1000"
+
+# Media path (should be NFS mount from TrueNAS)
+arr_media_path: "/mnt/media"
+
+# Whether to create media directories (set false if using existing NFS mounts)
+arr_create_media_dirs: false
+
+# VPN configuration
+arr_vpn_provider: "mullvad"
+arr_vpn_server_city: "Zurich"
+arr_vpn_forward_port: ""
+
+# Service URLs (built from homelab_domain)
+jellyseerr_url: "requests.{{ homelab_domain }}"
+sonarr_url: "sonarr.{{ homelab_domain }}"
+radarr_url: "radarr.{{ homelab_domain }}"
+prowlarr_url: "prowlarr.{{ homelab_domain }}"
+qbittorrent_url: "qbit.{{ homelab_domain }}"

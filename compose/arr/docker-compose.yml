@@ -1,0 +1,146 @@
+---
+# Arr Stack - Media Management & Automation
+# All secrets stored in .env file (never commit to git)
+
+services:
+  # ===========================================
+  # VPN CONTAINER (All torrent traffic routes through this)
+  # ===========================================
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      # qBittorrent WebUI (exposed through VPN)
+      - "8080:8080"
+      # qBittorrent torrent ports
+      - "6881:6881"
+      - "6881:6881/udp"
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_PROVIDER:-mullvad}
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${VPN_WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=${VPN_WIREGUARD_ADDRESS}
+      - SERVER_CITIES=${VPN_SERVER_CITY:-Zurich}
+      - FIREWALL_VPN_INPUT_PORTS=${VPN_FORWARD_PORT:-}
+      - TZ=${TZ:-America/New_York}
+    volumes:
+      - ./gluetun:/gluetun
+    restart: unless-stopped
+    networks:
+      - arr
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://ipinfo.io"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ===========================================
+  # BITTORRENT CLIENT
+  # ===========================================
+  qbittorrent:
+    image: linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/New_York}
+      - WEBUI_PORT=8080
+    volumes:
+      - ./qbittorrent/config:/config
+      - ${MEDIA_PATH:-/mnt/media}/downloads:/downloads
+    mem_limit: 2g
+    mem_reservation: 512m
+    network_mode: "service:gluetun"
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ===========================================
+  # INDEXER MANAGER
+  # ===========================================
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/New_York}
+    volumes:
+      - ./prowlarr/config:/config
+    ports:
+      - "9696:9696"
+    mem_limit: 512m
+    mem_reservation: 256m
+    restart: unless-stopped
+    networks:
+      - arr
+
+  # ===========================================
+  # TV SHOW MANAGER
+  # ===========================================
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/New_York}
+    volumes:
+      - ./sonarr/config:/config
+      - ${MEDIA_PATH:-/mnt/media}:/media
+    ports:
+      - "8989:8989"
+    mem_limit: 1g
+    mem_reservation: 256m
+    restart: unless-stopped
+    networks:
+      - arr
+
+  # ===========================================
+  # MOVIE MANAGER
+  # ===========================================
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/New_York}
+    volumes:
+      - ./radarr/config:/config
+      - ${MEDIA_PATH:-/mnt/media}:/media
+    ports:
+      - "7878:7878"
+    mem_limit: 1g
+    mem_reservation: 256m
+    restart: unless-stopped
+    networks:
+      - arr
+
+  # ===========================================
+  # USER REQUEST INTERFACE
+  # ===========================================
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - TZ=${TZ:-America/New_York}
+    volumes:
+      - ./jellyseerr/config:/app/config
+    ports:
+      - "5055:5055"
+    mem_limit: 512m
+    mem_reservation: 256m
+    restart: unless-stopped
+    networks:
+      - arr
+
+networks:
+  arr:
+    driver: bridge

@@ -1,0 +1,9 @@
+# Secrets
+.env
+
+# Config directories (contain API keys and settings)
+*/config/
+gluetun/
+
+# Logs
+*.log

@@ -1,0 +1,77 @@
+---
+# Arr stack role - deploy media automation stack
+
+- name: Create arr compose directory
+  file:
+    path: "{{ compose_base_path }}/arr"
+    state: directory
+    mode: '0755'
+
+- name: Copy arr docker-compose file
+  copy:
+    src: "{{ playbook_dir }}/../../compose/arr/docker-compose.yml"
+    dest: "{{ compose_base_path }}/arr/docker-compose.yml"
+    mode: '0644'
+
+- name: Copy arr .env.example file
+  copy:
+    src: "{{ playbook_dir }}/../../compose/arr/.env.example"
+    dest: "{{ compose_base_path }}/arr/.env.example"
+    mode: '0644'
+
+- name: Create arr .env file from template
+  template:
+    src: arr.env.j2
+    dest: "{{ compose_base_path }}/arr/.env"
+    mode: '0600'
+  no_log: true
+
+- name: Copy arr .gitignore file
+  copy:
+    src: "{{ playbook_dir }}/../../compose/arr/.gitignore"
+    dest: "{{ compose_base_path }}/arr/.gitignore"
+    mode: '0644'
+
+- name: Create arr service config directories
+  file:
+    path: "{{ compose_base_path }}/arr/{{ item }}/config"
+    state: directory
+    mode: '0755'
+    owner: '{{ arr_puid | default("1000") }}'
+    group: '{{ arr_pgid | default("1000") }}'
+  loop:
+    - gluetun
+    - qbittorrent
+    - prowlarr
+    - sonarr
+    - radarr
+    - jellyseerr
+
+- name: Create media directories
+  file:
+    path: "{{ arr_media_path }}/{{ item }}"
+    state: directory
+    mode: '0775'
+    owner: '{{ arr_puid | default("1000") }}'
+    group: '{{ arr_pgid | default("1000") }}'
+  loop:
+    - downloads
+    - downloads/incomplete
+    - downloads/complete
+    - downloads/complete/movies
+    - downloads/complete/tv
+    - movies
+    - tv
+  when: arr_create_media_dirs | default(false)
+
+- name: Start arr stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ compose_base_path }}/arr"
+    state: present
+    pull: always
+  register: arr_compose_result
+
+- name: Display arr stack status
+  debug:
+    msg: "Arr stack deployed successfully. Services: {{ arr_compose_result.containers | map(attribute='Name') | list | join(', ') }}"
+  when: arr_compose_result is defined

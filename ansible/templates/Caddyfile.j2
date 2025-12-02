@@ -103,3 +103,64 @@
     header Location "http://{{ hostvars['truenas']['ansible_host'] }}:80" "https://{{ truenas_url }}"
     header Location "http://{{ hostvars['truenas']['ansible_host'] }}" "https://{{ truenas_url }}"
 }
+
+{% if arr_stack_enabled | default(true) %}
+# ===========================================
+# ARR STACK - Media Automation
+# ===========================================
+
+# Jellyseerr - Media Request Interface
+{{ jellyseerr_url }} {
+    import tls_dns
+    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:5055 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+
+# Sonarr - TV Show Manager
+{{ sonarr_url }} {
+    import tls_dns
+    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:8989 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+
+# Radarr - Movie Manager
+{{ radarr_url }} {
+    import tls_dns
+    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:7878 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+
+# Prowlarr - Indexer Manager
+{{ prowlarr_url }} {
+    import tls_dns
+    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:9696 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+
+# qBittorrent - Download Client
+{{ qbittorrent_url }} {
+    import tls_dns
+    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:8080 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+{% endif %}

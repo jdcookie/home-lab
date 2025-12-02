@@ -1,0 +1,13 @@
+---
+# Arr stack handlers
+
+- name: Restart arr stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ compose_base_path }}/arr"
+    state: restarted
+
+- name: Pull arr images
+  community.docker.docker_compose_v2:
+    project_src: "{{ compose_base_path }}/arr"
+    pull: always
+    state: present

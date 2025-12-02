@@ -1,0 +1,65 @@
+---
+# Deploy Arr Stack - Media automation services
+# Requires: VPN credentials in vault.yml, NFS media mount configured
+
+- name: Deploy Arr Stack
+  hosts: docker_hosts
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Verify VPN credentials are configured
+      assert:
+        that:
+          - arr_vpn_wireguard_private_key is defined
+          - arr_vpn_wireguard_private_key | length > 0
+          - arr_vpn_wireguard_address is defined
+          - arr_vpn_wireguard_address | length > 0
+        fail_msg: |
+          VPN credentials not configured!
+          Please add the following to ansible/inventory/group_vars/vault.yml:
+            arr_vpn_wireguard_private_key: "your_wireguard_private_key"
+            arr_vpn_wireguard_address: "10.x.x.x/32"
+
+    - name: Check if media mount exists
+      stat:
+        path: "{{ arr_media_path | default('/mnt/media') }}"
+      register: media_mount
+
+    - name: Warn if media mount not found
+      debug:
+        msg: |
+          WARNING: Media path {{ arr_media_path | default('/mnt/media') }} does not exist.
+          Ensure NFS mount is configured before starting services.
+          Run: ansible-playbook playbooks/deploy-nfs-mounts.yml
+      when: not media_mount.stat.exists
+
+  roles:
+    - arr
+
+  tasks:
+    - name: Arr stack deployment information
+      debug:
+        msg: |
+          Arr Stack deployed successfully!
+
+          Service URLs (after Caddy configuration):
+          - Jellyseerr (requests): https://{{ jellyseerr_url }}
+          - Sonarr (TV): https://{{ sonarr_url }}
+          - Radarr (Movies): https://{{ radarr_url }}
+          - Prowlarr (Indexers): https://{{ prowlarr_url }}
+          - qBittorrent: https://{{ qbittorrent_url }}
+
+          Direct access (internal):
+          - Jellyseerr: http://{{ ansible_host }}:5055
+          - Sonarr: http://{{ ansible_host }}:8989
+          - Radarr: http://{{ ansible_host }}:7878
+          - Prowlarr: http://{{ ansible_host }}:9696
+          - qBittorrent: http://{{ ansible_host }}:8080
+
+          IMPORTANT: After first run:
+          1. Change qBittorrent password (default: admin/adminadmin)
+          2. Configure Prowlarr with indexers
+          3. Connect Sonarr/Radarr to Prowlarr
+          4. Connect Jellyseerr to Jellyfin and Sonarr/Radarr
+          5. Set up download paths in each service

@@ -54,9 +54,41 @@ nfs_mounts:
     mount_point: /mnt/video
   - src: "{{ hostvars['truenas']['ansible_host'] }}:/mnt/{{ truenas_pool_name }}/photos"
     mount_point: /mnt/photos
+  # Arr stack media mount (from ice-king pool)
+  - src: "{{ hostvars['truenas']['ansible_host'] }}:/mnt/ice-king/video"
+    mount_point: /mnt/media
 
 # Future services (deployment disabled, but URL defined for templates)
 immich_url: "immich.{{ homelab_domain }}"
+
+# ===========================================
+# ARR STACK CONFIGURATION
+# ===========================================
+
+# Enable/disable arr stack in Caddy config
+arr_stack_enabled: true
+
+# Arr stack service URLs
+jellyseerr_url: "requests.{{ homelab_domain }}"
+sonarr_url: "sonarr.{{ homelab_domain }}"
+radarr_url: "radarr.{{ homelab_domain }}"
+prowlarr_url: "prowlarr.{{ homelab_domain }}"
+qbittorrent_url: "qbit.{{ homelab_domain }}"
+
+# Arr stack paths
+arr_media_path: "/mnt/media"
+
+# User/Group IDs (should match NFS share permissions)
+arr_puid: "1000"
+arr_pgid: "1000"
+
+# VPN configuration (secrets in vault.yml)
+arr_vpn_provider: "mullvad"
+arr_vpn_server_city: "Zurich"
+arr_vpn_forward_port: ""
+
+# Whether to create media directories (set false if using existing TrueNAS structure)
+arr_create_media_dirs: false
 
 # Paths
 homelab_repo_path: "/opt/homelab"

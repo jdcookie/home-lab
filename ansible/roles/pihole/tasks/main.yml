@@ -87,6 +87,14 @@
       address=/{{ netdata_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ truenas_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/docker.{{ homelab_domain }}/{{ hostvars['docker-services']['ansible_host'] }}
+      {% if arr_stack_enabled | default(true) %}
+      # Arr Stack - Media Automation
+      address=/{{ jellyseerr_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ sonarr_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ radarr_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ prowlarr_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ qbittorrent_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      {% endif %}
     dest: /etc/dnsmasq.d/99-homelab-dns.conf
     mode: '0644'
   notify: restart pihole-FTL

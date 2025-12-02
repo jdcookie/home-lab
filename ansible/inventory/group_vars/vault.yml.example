@@ -18,3 +18,12 @@ pihole_admin_password: "CHANGE-ME-SECURE-PASSWORD"
 
 # Caddy
 caddy_admin_email: "admin@example.com"
+
+# ===========================================
+# ARR STACK VPN CREDENTIALS
+# ===========================================
+# Get WireGuard credentials from your VPN provider
+# Mullvad: https://mullvad.net/en/account/#/wireguard-config
+
+arr_vpn_wireguard_private_key: "YOUR_WIREGUARD_PRIVATE_KEY_HERE"
+arr_vpn_wireguard_address: "10.x.x.x/32"

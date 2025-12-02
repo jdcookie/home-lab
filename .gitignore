@@ -7,6 +7,7 @@ ansible/inventory/group_vars/vault.yml
 .env
 *.env
 !.env.example
+CLAUDE.md
 
 # Backups
 backups/

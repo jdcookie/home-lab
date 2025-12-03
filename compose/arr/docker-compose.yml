@@ -26,6 +26,7 @@ services:
       - WIREGUARD_ADDRESSES=${VPN_WIREGUARD_ADDRESS}
       - SERVER_CITIES=${VPN_SERVER_CITY:-Zurich}
       - FIREWALL_VPN_INPUT_PORTS=${VPN_FORWARD_PORT:-}
+      - WIREGUARD_PERSISTENT_KEEPALIVE_INTERVAL=25
       - TZ=${TZ:-America/New_York}
     volumes:
       - ./gluetun:/gluetun

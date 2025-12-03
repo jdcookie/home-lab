@@ -39,6 +39,22 @@
     mode: '0755'
     owner: '{{ arr_puid | default("1000") }}'
     group: '{{ arr_pgid | default("1000") }}'
+    recurse: yes
+  loop:
+    - gluetun
+    - qbittorrent
+    - prowlarr
+    - sonarr
+    - radarr
+    - jellyseerr
+
+- name: Fix arr config directory ownership
+  file:
+    path: "{{ compose_base_path }}/arr/{{ item }}"
+    state: directory
+    owner: '{{ arr_puid | default("1000") }}'
+    group: '{{ arr_pgid | default("1000") }}'
+    recurse: yes
   loop:
     - gluetun
     - qbittorrent

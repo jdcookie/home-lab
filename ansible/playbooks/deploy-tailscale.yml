@@ -1,0 +1,58 @@
+---
+# Deploy Tailscale Subnet Router
+# This playbook configures the Tailscale LXC container as a subnet router
+# for secure remote access to all homelab services
+#
+# Prerequisites:
+#   1. LXC container 102 created in Proxmox (privileged, 128MB RAM, 2GB disk)
+#   2. TAILSCALE_AUTHKEY set in .env file
+#   3. Container has network access
+#
+# Usage:
+#   ansible-playbook playbooks/deploy-tailscale.yml
+#
+# After running:
+#   1. Approve subnet route in Tailscale Admin Console
+#   2. Test remote access from a Tailscale-connected device
+
+- name: Deploy Tailscale Subnet Router
+  hosts: tailscale
+  become: yes
+
+  pre_tasks:
+    - name: Verify we're running on the Tailscale LXC
+      assert:
+        that:
+          - lxc_id is defined
+          - lxc_id == 102
+        fail_msg: "This playbook should only run on the Tailscale LXC (ID 102)"
+
+    - name: Check if Tailscale is enabled
+      fail:
+        msg: "Tailscale is disabled in configuration. Set tailscale_enabled: true in group_vars/all.yml"
+      when: not (tailscale_enabled | default(true))
+
+  roles:
+    - tailscale
+
+  post_tasks:
+    - name: Final reminder
+      debug:
+        msg: |
+          ============================================================
+          NEXT STEPS:
+
+          1. APPROVE SUBNET ROUTE (Required!)
+             Go to: https://login.tailscale.com/admin/machines
+             Find '{{ tailscale_hostname }}' and enable route '{{ tailscale_advertise_routes }}'
+
+          2. TEST REMOTE ACCESS
+             From a Tailscale-connected device:
+             $ ping 192.168.1.2   # Proxmox
+             $ ping 192.168.1.10  # PiHole
+             $ ping 192.168.1.50  # Docker Services
+
+          3. INVITE FRIENDS (Optional)
+             Tailscale Admin -> Users -> Invite
+             Or share just the subnet router device for limited access
+          ============================================================

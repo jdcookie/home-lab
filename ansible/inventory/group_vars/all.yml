@@ -105,3 +105,25 @@ letsencrypt_email: "{{ lookup('pipe', 'grep ^ADMIN_EMAIL= ../../.env | cut -d= -
 # DNS API credentials (for Let's Encrypt DNS challenge)
 dns_api_key: "{{ lookup('pipe', 'grep ^DNS_API_KEY= ../../.env | cut -d= -f2') | default('', true) }}"
 dns_secret_key: "{{ lookup('pipe', 'grep ^DNS_SECRET_KEY= ../../.env | cut -d= -f2') | default('', true) }}"
+
+# ===========================================
+# TAILSCALE CONFIGURATION
+# ===========================================
+
+# Enable/disable Tailscale subnet router
+tailscale_enabled: true
+
+# Tailscale auth key (from .env - NEVER commit the actual key)
+tailscale_authkey: "{{ lookup('pipe', 'grep ^TAILSCALE_AUTHKEY= ../../.env | cut -d= -f2') | default('', true) }}"
+
+# Tailscale hostname for the subnet router
+tailscale_hostname: "{{ lookup('pipe', 'grep ^TAILSCALE_HOSTNAME= ../../.env | cut -d= -f2') | default('homelab-router', true) }}"
+
+# Routes to advertise (your LAN subnet)
+tailscale_advertise_routes: "{{ homelab_network }}"
+
+# DNS settings - don't use Tailscale DNS (we have PiHole)
+tailscale_accept_dns: false
+
+# Don't accept routes from other Tailscale nodes
+tailscale_accept_routes: false

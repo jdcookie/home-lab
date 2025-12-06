@@ -1,0 +1,15 @@
+---
+# Tailscale role defaults
+# These can be overridden in group_vars/all.yml or host_vars
+
+# Tailscale hostname (shown in admin console)
+tailscale_hostname: "homelab-router"
+
+# Routes to advertise (subnet router mode)
+tailscale_advertise_routes: "192.168.1.0/24"
+
+# Don't use Tailscale's DNS (we have PiHole)
+tailscale_accept_dns: false
+
+# Don't accept routes from other Tailscale nodes
+tailscale_accept_routes: false

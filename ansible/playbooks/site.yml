@@ -14,5 +14,6 @@
 - import_playbook: deploy-infrastructure.yml
 - import_playbook: deploy-pihole.yml
 - import_playbook: deploy-caddy.yml
+- import_playbook: deploy-tailscale.yml
 - import_playbook: deploy-docker-services.yml
 - import_playbook: deploy-arr-stack.yml

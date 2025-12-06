@@ -1,0 +1,108 @@
+---
+# Tailscale Subnet Router role
+# Installs and configures Tailscale as a subnet router for remote LAN access
+
+- name: Install Tailscale dependencies
+  apt:
+    name:
+      - curl
+      - ca-certificates
+      - gnupg
+    state: present
+    update_cache: yes
+
+- name: Check if Tailscale is installed
+  stat:
+    path: /usr/bin/tailscale
+  register: tailscale_binary
+
+- name: Download and run Tailscale install script
+  shell: curl -fsSL https://tailscale.com/install.sh | sh
+  args:
+    creates: /usr/bin/tailscale
+  when: not tailscale_binary.stat.exists
+
+- name: Enable IP forwarding for subnet routing (IPv4)
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_file: /etc/sysctl.d/99-tailscale.conf
+    state: present
+    reload: yes
+
+- name: Enable IP forwarding for subnet routing (IPv6)
+  sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: '1'
+    sysctl_file: /etc/sysctl.d/99-tailscale.conf
+    state: present
+    reload: yes
+
+- name: Ensure tailscaled service is enabled and started
+  systemd:
+    name: tailscaled
+    enabled: yes
+    state: started
+
+- name: Check current Tailscale status
+  command: tailscale status --json
+  register: tailscale_status_check
+  changed_when: false
+  failed_when: false
+
+- name: Parse Tailscale status
+  set_fact:
+    tailscale_logged_in: "{{ (tailscale_status_check.rc == 0) and ('LoggedOut' not in tailscale_status_check.stdout) and ('NeedsLogin' not in tailscale_status_check.stdout) }}"
+
+- name: Validate Tailscale auth key is provided
+  fail:
+    msg: |
+      Tailscale auth key is not configured!
+      Please add TAILSCALE_AUTHKEY to your .env file.
+      Get a key from: https://login.tailscale.com/admin/settings/keys
+  when:
+    - not tailscale_logged_in
+    - tailscale_authkey == '' or tailscale_authkey is not defined
+
+- name: Configure Tailscale as subnet router
+  command: >
+    tailscale up
+    --authkey={{ tailscale_authkey }}
+    --hostname={{ tailscale_hostname }}
+    --advertise-routes={{ tailscale_advertise_routes }}
+    --accept-dns={{ tailscale_accept_dns | string | lower }}
+    --accept-routes={{ tailscale_accept_routes | string | lower }}
+  when: not tailscale_logged_in
+  no_log: true
+  register: tailscale_up_result
+
+- name: Get Tailscale IP address
+  command: tailscale ip -4
+  register: tailscale_ip
+  changed_when: false
+
+- name: Get Tailscale status
+  command: tailscale status
+  register: tailscale_final_status
+  changed_when: false
+
+- name: Display Tailscale configuration summary
+  debug:
+    msg: |
+      ============================================================
+      Tailscale Subnet Router configured successfully!
+
+      Tailscale IP: {{ tailscale_ip.stdout }}
+      Hostname: {{ tailscale_hostname }}
+      Advertised routes: {{ tailscale_advertise_routes }}
+
+      IMPORTANT: You must approve the subnet route in Tailscale Admin!
+
+      1. Go to: https://login.tailscale.com/admin/machines
+      2. Find '{{ tailscale_hostname }}'
+      3. Click '...' -> 'Edit route settings'
+      4. Enable '{{ tailscale_advertise_routes }}'
+      5. Save
+
+      Without this step, remote access won't work!
+      ============================================================

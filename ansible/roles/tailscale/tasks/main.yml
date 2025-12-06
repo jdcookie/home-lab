@@ -73,7 +73,7 @@
     --accept-dns={{ tailscale_accept_dns | string | lower }}
     --accept-routes={{ tailscale_accept_routes | string | lower }}
   when: not tailscale_logged_in
-  no_log: false
+  no_log: true
   register: tailscale_up_result
 
 - name: Get Tailscale IP address

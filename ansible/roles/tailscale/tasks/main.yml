@@ -62,7 +62,7 @@
       Get a key from: https://login.tailscale.com/admin/settings/keys
   when:
     - not tailscale_logged_in
-    - tailscale_authkey == '' or tailscale_authkey is not defined
+    - (tailscale_authkey is not defined) or (tailscale_authkey | default('') == '')
 
 - name: Configure Tailscale as subnet router
   command: >

@@ -1,0 +1,142 @@
+---
+# Deploy Satisfactory Game Server
+# Requires: VM 202 created in Proxmox, TrueNAS games dataset with NFS export
+#
+# Pre-requisites:
+#   1. Create VM 202 in Proxmox (14GB RAM, 4 cores, 50GB disk)
+#   2. Install Ubuntu 22.04 Server with static IP 192.168.1.51
+#   3. Create TrueNAS dataset: /mnt/ice-king/games/satisfactory
+#   4. Configure NFS export for /mnt/ice-king/games
+#
+# Usage:
+#   ansible-playbook playbooks/deploy-game-server.yml
+#
+# Note: The game server VM is OFF by default. Start it manually when gaming:
+#   ssh root@192.168.1.2 "qm start 202"
+
+- name: Setup Game Server VM
+  hosts: game_servers
+  become: true
+  gather_facts: true
+
+  vars:
+    satisfactory_compose_path: "{{ compose_base_path }}/satisfactory"
+    games_nfs_mount:
+      src: "{{ hostvars['truenas']['ansible_host'] }}:/mnt/ice-king/games"
+      mount_point: /mnt/games
+      opts: "rw,sync,hard,intr"
+
+  pre_tasks:
+    - name: Display deployment info
+      debug:
+        msg: |
+          Deploying Satisfactory Game Server
+          - VM ID: {{ vm_id | default('202') }}
+          - IP: {{ ansible_host }}
+          - RAM: {{ vm_memory | default('14336') }}MB max / {{ vm_balloon | default('4096') }}MB min
+          - Cores: {{ vm_cores | default('4') }}
+
+  roles:
+    - docker
+
+  tasks:
+    # NFS Mount for game saves (stored on TrueNAS)
+    - name: Install NFS client
+      apt:
+        name: nfs-common
+        state: present
+        update_cache: yes
+
+    - name: Create games mount directory
+      file:
+        path: "{{ games_nfs_mount.mount_point }}"
+        state: directory
+        mode: '0755'
+
+    - name: Mount games NFS share
+      ansible.posix.mount:
+        src: "{{ games_nfs_mount.src }}"
+        path: "{{ games_nfs_mount.mount_point }}"
+        fstype: nfs
+        opts: "{{ games_nfs_mount.opts }}"
+        state: mounted
+
+    - name: Create Satisfactory directories on NFS
+      file:
+        path: "{{ games_nfs_mount.mount_point }}/satisfactory/{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: "{{ satisfactory_puid | default('1000') }}"
+        group: "{{ satisfactory_pgid | default('1000') }}"
+      loop:
+        - config
+        - saves
+
+    # Deploy Satisfactory container
+    - name: Create Satisfactory compose directory
+      file:
+        path: "{{ satisfactory_compose_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy Satisfactory docker-compose file
+      template:
+        src: "{{ playbook_dir }}/../templates/satisfactory/docker-compose.yml.j2"
+        dest: "{{ satisfactory_compose_path }}/docker-compose.yml"
+        mode: '0644'
+
+    - name: Create Satisfactory .env file
+      template:
+        src: "{{ playbook_dir }}/../templates/satisfactory/env.j2"
+        dest: "{{ satisfactory_compose_path }}/.env"
+        mode: '0600'
+
+    - name: Start Satisfactory server
+      community.docker.docker_compose_v2:
+        project_src: "{{ satisfactory_compose_path }}"
+        state: present
+        pull: always
+
+    - name: Wait for Satisfactory server to initialize
+      debug:
+        msg: |
+          Satisfactory server is starting!
+
+          First startup will download ~10GB of game files.
+          Monitor progress with: docker logs -f satisfactory-server
+
+          Once ready, connect via Tailscale:
+          - Address: {{ ansible_host }}:7777
+          - Friends connect to the same address after joining your Tailnet
+
+  post_tasks:
+    - name: Deployment complete
+      debug:
+        msg: |
+          ========================================
+          Satisfactory Game Server Deployed!
+          ========================================
+
+          Connection Info (via Tailscale):
+            Address: {{ ansible_host }}:7777
+
+          Game Data Location:
+            Config: /mnt/games/satisfactory/config
+            Saves:  /mnt/games/satisfactory/saves
+
+          Server Management:
+            Start VM:  ssh root@192.168.1.2 "qm start 202"
+            Stop VM:   ssh root@192.168.1.2 "qm shutdown 202"
+            Logs:      docker logs -f satisfactory-server
+            Status:    docker ps | grep satisfactory
+
+          First Time Setup:
+            1. Wait for game download (~10GB)
+            2. Connect from Satisfactory client
+            3. Server Manager → Add Server → {{ ansible_host }}:7777
+            4. Claim the server
+
+          Friend Access:
+            1. Invite friend to your Tailnet
+            2. They connect to {{ ansible_host }}:7777
+            ========================================

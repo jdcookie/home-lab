@@ -95,6 +95,27 @@ homelab_repo_path: "/opt/homelab"
 compose_base_path: "/opt/homelab/compose"
 backup_path: "/opt/backups"
 
+# ===========================================
+# GAME SERVER CONFIGURATION
+# ===========================================
+
+# Game server VM settings (defined in hosts.yml)
+game_server_ip: "{{ lookup('pipe', 'grep ^GAME_SERVER_IP= ../../.env | cut -d= -f2') | default('192.168.1.51', true) }}"
+
+# Satisfactory server configuration
+satisfactory_puid: "1000"
+satisfactory_pgid: "1000"
+satisfactory_max_players: "4"
+satisfactory_game_port: "7777"
+satisfactory_query_port: "15777"
+satisfactory_beacon_port: "15000"
+satisfactory_autopause: "true"
+satisfactory_autosave_interval: "300"
+satisfactory_crash_report: "false"
+satisfactory_skip_update: "false"
+satisfactory_steam_beta: ""
+satisfactory_data_path: "/mnt/games/satisfactory"
+
 # Backup configuration
 backup_retention_days: 30
 backup_schedule: "0 2 * * *"  # Daily at 2 AM

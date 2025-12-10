@@ -28,6 +28,10 @@ services:
       - FIREWALL_VPN_INPUT_PORTS=${VPN_FORWARD_PORT:-}
       - WIREGUARD_PERSISTENT_KEEPALIVE_INTERVAL=25s
       - TZ=${TZ:-America/New_York}
+      # Disable Gluetun's built-in blocking (using PiHole instead)
+      - BLOCK_MALICIOUS=off
+      - BLOCK_SURVEILLANCE=off
+      - BLOCK_ADS=off
     volumes:
       - ./gluetun:/gluetun
     restart: unless-stopped

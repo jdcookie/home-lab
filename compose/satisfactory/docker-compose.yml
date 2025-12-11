@@ -35,11 +35,8 @@ services:
     volumes:
       - ${SATISFACTORY_DATA_PATH:-/mnt/games/satisfactory}/config:/config
       - ${SATISFACTORY_DATA_PATH:-/mnt/games/satisfactory}/saves:/config/saves
-    ports:
-      - "7777:7777/tcp"
-      - "7777:7777/udp"
-      - "15777:15777/udp"
-      - "15000:15000/udp"
+    # Use host networking for reliable UDP game traffic
+    network_mode: host
     restart: unless-stopped
     mem_limit: 12g
     mem_reservation: 8g
@@ -49,7 +46,3 @@ services:
       timeout: 10s
       retries: 5
       start_period: 180s
-
-networks:
-  default:
-    driver: bridge

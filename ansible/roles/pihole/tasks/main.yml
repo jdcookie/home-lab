@@ -91,6 +91,10 @@
       # Tailscale - Remote Access VPN
       address=/tailscale.{{ homelab_domain }}/{{ hostvars['tailscale']['ansible_host'] }}
       {% endif %}
+      {% if immich_enabled | default(true) %}
+      # Immich - Photo Management
+      address=/{{ immich_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      {% endif %}
       {% if arr_stack_enabled | default(true) %}
       # Arr Stack - Media Automation
       address=/{{ jellyseerr_url }}/{{ hostvars['caddy']['ansible_host'] }}

@@ -27,20 +27,13 @@
       debug:
         msg: "Jellyfin deployed - Access at https://{{ jellyfin_url }}"
 
-# Immich - DISABLED (requires additional storage)
-# Uncomment when storage is configured
-# - name: Deploy Immich
-#   hosts: docker_hosts
-#   become: yes
-#   gather_facts: yes
-#
-#   roles:
-#     - immich
-#
-#   tasks:
-#     - name: Immich deployment information
-#       debug:
-#         msg: "Immich deployed - Access at https://{{ immich_url }}"
+- name: Deploy Immich
+  hosts: docker_hosts
+  become: true
+  gather_facts: true
+
+  roles:
+    - immich
 
 - name: Deploy N8N
   hosts: docker_hosts

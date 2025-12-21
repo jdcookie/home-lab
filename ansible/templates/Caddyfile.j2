@@ -91,6 +91,19 @@
     }
 }
 
+{% if immich_enabled | default(true) %}
+# Immich Photo Management
+{{ immich_url }} {
+    import tls_dns
+    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:2283 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+{% endif %}
+
 # TrueNAS Storage
 {{ truenas_url }} {
     import tls_dns

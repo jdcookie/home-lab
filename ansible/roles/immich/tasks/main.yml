@@ -1,5 +1,24 @@
 ---
-# Immich role - deploy Immich photo management
+# Immich role - deploy Immich photo management (without ML)
+
+- name: Create Immich directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ compose_base_path }}/immich"
+    - "{{ immich_upload_path }}"
+
+- name: Ensure NFS photos mount exists
+  stat:
+    path: "{{ immich_external_library }}"
+  register: nfs_photos_mount
+
+- name: Warn if NFS photos mount is missing
+  debug:
+    msg: "WARNING: NFS photos mount {{ immich_external_library }} does not exist. Run deploy-nfs-mounts.yml first or photos import will fail."
+  when: not nfs_photos_mount.stat.exists
 
 - name: Copy Immich docker-compose file
   copy:
@@ -13,14 +32,25 @@
     dest: "{{ compose_base_path }}/immich/.env"
     mode: '0600'
 
-- name: Create Immich upload directory
-  file:
-    path: "{{ immich_upload_path | default('/opt/immich/upload') }}"
-    state: directory
-    mode: '0755'
-
 - name: Start Immich services
   community.docker.docker_compose_v2:
     project_src: "{{ compose_base_path }}/immich"
     state: present
     pull: always
+  register: immich_compose
+
+- name: Display Immich deployment status
+  debug:
+    msg:
+      - "Immich deployed successfully!"
+      - "  URL: https://{{ immich_url }}"
+      - "  Upload path: {{ immich_upload_path }}"
+      - "  External library: {{ immich_external_library }}"
+      - "  Machine Learning: DISABLED (no GPU)"
+      - ""
+      - "First-time setup:"
+      - "  1. Visit https://{{ immich_url }}"
+      - "  2. Create admin account"
+      - "  3. Go to Administration > Settings > Machine Learning"
+      - "  4. Verify Smart Search and Facial Recognition are disabled"
+      - "  5. Import photos from {{ immich_external_library }} via External Library"

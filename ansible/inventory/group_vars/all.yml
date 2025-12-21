@@ -58,8 +58,19 @@ nfs_mounts:
   - src: "{{ hostvars['truenas']['ansible_host'] }}:/mnt/ice-king/video"
     mount_point: /mnt/media
 
-# Future services (deployment disabled, but URL defined for templates)
+# ===========================================
+# IMMICH CONFIGURATION
+# ===========================================
+
+# Enable/disable Immich in Caddy/PiHole config
+immich_enabled: true
+
+# Immich service URL
 immich_url: "immich.{{ homelab_domain }}"
+
+# Immich storage paths
+immich_upload_path: "/opt/immich/upload"
+immich_external_library: "/mnt/photos"
 
 # ===========================================
 # ARR STACK CONFIGURATION

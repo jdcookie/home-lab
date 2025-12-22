@@ -73,6 +73,9 @@ immich_url: "immich.{{ homelab_domain }}"
 immich_upload_path: "/mnt/photos/uploads"
 immich_external_library: "/mnt/photos"
 
+# Immich database password (from .env)
+immich_db_password: "{{ lookup('pipe', 'grep ^IMMICH_DB_PASSWORD= ../../.env | cut -d= -f2') | default('changeme', true) }}"
+
 # ===========================================
 # ARR STACK CONFIGURATION
 # ===========================================

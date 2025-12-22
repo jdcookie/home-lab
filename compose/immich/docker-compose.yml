@@ -13,7 +13,7 @@ services:
     mem_reservation: 256m
     volumes:
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
-      - ${EXTERNAL_LIBRARY:-/mnt/photos}:/mnt/photos:ro
+      - ${EXTERNAL_LIBRARY:-/mnt/photos}:/mnt/photos
       - /etc/localtime:/etc/localtime:ro
     environment:
       - DB_HOSTNAME=immich-postgres

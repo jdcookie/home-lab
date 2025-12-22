@@ -52,7 +52,8 @@ truenas_pool_name: "{{ lookup('pipe', 'grep ^TRUENAS_POOL_NAME= ../../.env | cut
 nfs_mounts:
   - src: "{{ hostvars['truenas']['ansible_host'] }}:/mnt/{{ truenas_pool_name }}/video"
     mount_point: /mnt/video
-  - src: "{{ hostvars['truenas']['ansible_host'] }}:/mnt/{{ truenas_pool_name }}/photos"
+  # Immich photos (from ice-king pool)
+  - src: "{{ hostvars['truenas']['ansible_host'] }}:/mnt/ice-king/photos"
     mount_point: /mnt/photos
   # Arr stack media mount (from ice-king pool)
   - src: "{{ hostvars['truenas']['ansible_host'] }}:/mnt/ice-king/video"
@@ -68,8 +69,8 @@ immich_enabled: true
 # Immich service URL
 immich_url: "immich.{{ homelab_domain }}"
 
-# Immich storage paths
-immich_upload_path: "/opt/immich/upload"
+# Immich storage paths (both use NFS mount to ice-king/photos)
+immich_upload_path: "/mnt/photos/uploads"
 immich_external_library: "/mnt/photos"
 
 # ===========================================

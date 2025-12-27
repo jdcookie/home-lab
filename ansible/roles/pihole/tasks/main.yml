@@ -58,11 +58,8 @@
   notify: restart pihole-FTL
 
 - name: Enable dnsmasq.d directory loading (PiHole v6+)
-  lineinfile:
-    path: /etc/pihole/pihole.toml
-    regexp: '^.*misc\.etc_dnsmasq_d.*'
-    line: '  etc_dnsmasq_d = true'
-    insertafter: '^\[misc\]'
+  command: pihole-FTL --config misc.etc_dnsmasq_d true
+  changed_when: true
   notify: restart pihole-FTL
 
 - name: Configure PiHole webserver domain

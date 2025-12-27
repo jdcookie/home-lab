@@ -34,7 +34,7 @@ services:
     networks:
       - immich
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:2283/api/server/ping || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:2283/api/server/ping || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

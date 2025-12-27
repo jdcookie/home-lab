@@ -56,7 +56,7 @@
       - "  External library: {{ immich_external_library }}"
       - "  Machine Learning: DISABLED (no GPU)"
       - ""
-      - "ImmichFrame: http://{{ docker_host_ip }}:8701"
+      - "ImmichFrame: http://{{ ansible_host }}:8701 or https://{{ immichframe_url }}"
       - ""
       - "First-time setup:"
       - "  1. Visit https://{{ immich_url }}"

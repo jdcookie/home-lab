@@ -8,6 +8,7 @@
     mode: '0755'
   loop:
     - "{{ compose_base_path }}/immich"
+    - "{{ compose_base_path }}/immich/immichframe"
     - "{{ immich_upload_path }}"
 
 - name: Ensure NFS photos mount exists
@@ -32,6 +33,13 @@
     dest: "{{ compose_base_path }}/immich/.env"
     mode: '0600'
 
+- name: Create ImmichFrame settings file
+  template:
+    src: immichframe-settings.yml.j2
+    dest: "{{ compose_base_path }}/immich/immichframe/Settings.yml"
+    mode: '0644'
+  when: immichframe_api_key is defined and immichframe_api_key | length > 0
+
 - name: Start Immich services
   community.docker.docker_compose_v2:
     project_src: "{{ compose_base_path }}/immich"
@@ -48,9 +56,12 @@
       - "  External library: {{ immich_external_library }}"
       - "  Machine Learning: DISABLED (no GPU)"
       - ""
+      - "ImmichFrame: http://{{ docker_host_ip }}:8701"
+      - ""
       - "First-time setup:"
       - "  1. Visit https://{{ immich_url }}"
       - "  2. Create admin account"
       - "  3. Go to Administration > Settings > Machine Learning"
       - "  4. Verify Smart Search and Facial Recognition are disabled"
       - "  5. Import photos from {{ immich_external_library }} via External Library"
+      - "  6. Generate API key for ImmichFrame: Account Settings > API Keys"

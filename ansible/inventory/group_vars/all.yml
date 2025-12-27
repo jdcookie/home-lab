@@ -66,8 +66,9 @@ nfs_mounts:
 # Enable/disable Immich in Caddy/PiHole config
 immich_enabled: true
 
-# Immich service URL
+# Immich service URLs
 immich_url: "immich.{{ homelab_domain }}"
+immichframe_url: "frame.{{ homelab_domain }}"
 
 # Immich storage paths (both use NFS mount to ice-king/photos)
 immich_upload_path: "/mnt/photos/uploads"

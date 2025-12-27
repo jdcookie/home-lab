@@ -91,6 +91,7 @@
       {% if immich_enabled | default(true) %}
       # Immich - Photo Management
       address=/{{ immich_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ immichframe_url }}/{{ hostvars['caddy']['ansible_host'] }}
       {% endif %}
       {% if arr_stack_enabled | default(true) %}
       # Arr Stack - Media Automation

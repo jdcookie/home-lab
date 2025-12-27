@@ -102,6 +102,17 @@
         header_up X-Forwarded-Proto {scheme}
     }
 }
+
+# ImmichFrame - Digital Photo Frame
+{{ immichframe_url }} {
+    import tls_dns
+    reverse_proxy {{ hostvars['docker-services']['ansible_host'] }}:8701 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
 {% endif %}
 
 # TrueNAS Storage

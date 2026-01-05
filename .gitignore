@@ -1,6 +1,8 @@
 # Ansible
 *.retry
 ansible/inventory/group_vars/vault.yml
+ansible/inventory/group_vars/all/vault.yml
+ansible/inventory/group_vars/*/vault.yml
 .vault_pass
 
 # Environment files
@@ -8,6 +10,7 @@ ansible/inventory/group_vars/vault.yml
 *.env
 !.env.example
 CLAUDE.md
+docs/machines/*
 
 # Backups
 backups/

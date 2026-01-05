@@ -19,14 +19,13 @@ services:
       - "8920:8920"  # HTTPS (optional)
       - "7359:7359/udp"  # Auto-discovery (optional)
       - "1900:1900/udp"  # DLNA (optional)
-    # Hardware acceleration devices (uncomment if available)
-    # devices:
-    #   # Intel QuickSync
-    #   - /dev/dri/renderD128:/dev/dri/renderD128
-    #   - /dev/dri/card0:/dev/dri/card0
-    #   # NVIDIA
-    #   - /dev/nvidia0:/dev/nvidia0
-    #   - /dev/nvidiactl:/dev/nvidiactl
+    # Hardware acceleration devices
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+      - /dev/dri/card0:/dev/dri/card0
+    group_add:
+      - "44"    # video
+      - "992"   # render
     networks:
       - homelab
 

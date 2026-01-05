@@ -1,6 +1,12 @@
 ---
 # Jellyfin role - deploy Jellyfin media server
 
+- name: Create Jellyfin compose directory
+  file:
+    path: "{{ compose_base_path }}/jellyfin"
+    state: directory
+    mode: '0755'
+
 - name: Copy Jellyfin docker-compose file
   copy:
     src: "{{ playbook_dir }}/../../compose/jellyfin/docker-compose.yml"

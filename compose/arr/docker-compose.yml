@@ -67,6 +67,23 @@ services:
     restart: unless-stopped
 
   # ===========================================
+  # FLARESOLVERR - Cloudflare Bypass
+  # ===========================================
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=info
+      - TZ=${TZ:-America/New_York}
+    ports:
+      - "8191:8191"
+    mem_limit: 512m
+    mem_reservation: 256m
+    restart: unless-stopped
+    networks:
+      - arr
+
+  # ===========================================
   # INDEXER MANAGER
   # ===========================================
   prowlarr:

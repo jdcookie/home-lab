@@ -1,0 +1,47 @@
+---
+# Deploy Media Services to raph (Dell OptiPlex)
+# Services: Jellyfin, Arr Stack (Sonarr, Radarr, Prowlarr, Jellyseerr, qBittorrent)
+
+- name: Deploy Media Services to raph
+  hosts: raph
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Verify VPN credentials are configured
+      assert:
+        that:
+          - arr_vpn_wireguard_private_key is defined
+          - arr_vpn_wireguard_private_key | length > 0
+          - arr_vpn_wireguard_address is defined
+          - arr_vpn_wireguard_address | length > 0
+        fail_msg: |
+          VPN credentials not configured!
+          Please add the following to ansible/inventory/group_vars/vault.yml:
+            arr_vpn_wireguard_private_key: "your_wireguard_private_key"
+            arr_vpn_wireguard_address: "10.x.x.x/32"
+
+  roles:
+    - common
+    - docker
+    - nfs-mounts
+    - jellyfin
+    - arr
+
+  tasks:
+    - name: Deployment complete
+      debug:
+        msg: |
+          Media services deployed to raph!
+
+          Jellyfin: http://{{ ansible_host }}:8096
+          Jellyseerr: http://{{ ansible_host }}:5055
+          Sonarr: http://{{ ansible_host }}:8989
+          Radarr: http://{{ ansible_host }}:7878
+          Prowlarr: http://{{ ansible_host }}:9696
+          qBittorrent: http://{{ ansible_host }}:8080
+
+          Next steps:
+          1. Update DNS records in PiHole
+          2. Update Caddy reverse proxy config
+          3. Verify all services are accessible

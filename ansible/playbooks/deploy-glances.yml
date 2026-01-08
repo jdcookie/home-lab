@@ -1,0 +1,33 @@
+---
+# Deploy Glances system monitoring to all hosts
+# Provides API for Homepage system stats widgets
+
+- name: Deploy Glances to Proxmox (native install)
+  hosts: pve
+  become: true
+  roles:
+    - glances-native
+
+- name: Deploy Glances to PiHole/Splinter (native install)
+  hosts: pihole
+  become: true
+  roles:
+    - glances-native
+
+- name: Deploy Glances to raph (Docker)
+  hosts: raph
+  become: true
+  vars:
+    compose_base_path: /opt/homelab/compose
+    timezone: "{{ lookup('env', 'TZ') | default('Australia/Melbourne', true) }}"
+  roles:
+    - glances
+
+- name: Deploy Glances to dona (Docker)
+  hosts: dona
+  become: true
+  vars:
+    compose_base_path: /opt/homelab/compose
+    timezone: "{{ lookup('env', 'TZ') | default('Australia/Melbourne', true) }}"
+  roles:
+    - glances

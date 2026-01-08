@@ -1,0 +1,42 @@
+---
+# Home Assistant deployment
+
+- name: Create Home Assistant directory
+  file:
+    path: "{{ compose_base_path }}/homeassistant"
+    state: directory
+    mode: '0755'
+
+- name: Create Home Assistant config directory
+  file:
+    path: "{{ compose_base_path }}/homeassistant/config"
+    state: directory
+    mode: '0755'
+
+- name: Copy Home Assistant docker-compose file
+  copy:
+    src: "{{ playbook_dir }}/../../compose/homeassistant/docker-compose.yml"
+    dest: "{{ compose_base_path }}/homeassistant/docker-compose.yml"
+    mode: '0644'
+
+- name: Create Home Assistant .env file
+  template:
+    src: homeassistant.env.j2
+    dest: "{{ compose_base_path }}/homeassistant/.env"
+    mode: '0600'
+
+- name: Start Home Assistant
+  community.docker.docker_compose_v2:
+    project_src: "{{ compose_base_path }}/homeassistant"
+    state: present
+    pull: always
+
+- name: Wait for Home Assistant to be ready
+  uri:
+    url: "http://localhost:8123"
+    status_code: [200, 401]
+  register: hass_health
+  until: hass_health.status in [200, 401]
+  retries: 24
+  delay: 5
+  ignore_errors: true

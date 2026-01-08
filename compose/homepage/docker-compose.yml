@@ -1,0 +1,27 @@
+---
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 64m
+    volumes:
+      - ./config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - TZ=${TZ:-Australia/Melbourne}
+      - PUID=1000
+      - PGID=1000
+      - HOMEPAGE_ALLOWED_HOSTS=*
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true
+    name: homelab

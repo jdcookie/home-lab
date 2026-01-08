@@ -1,0 +1,16 @@
+---
+- Developer:
+    - GitHub:
+        - icon: github.svg
+          href: https://github.com
+    - Claude:
+        - icon: mdi-robot
+          href: https://claude.ai
+
+- Documentation:
+    - Home Assistant:
+        - icon: home-assistant.svg
+          href: https://www.home-assistant.io/docs/
+    - Docker:
+        - icon: docker.svg
+          href: https://docs.docker.com/

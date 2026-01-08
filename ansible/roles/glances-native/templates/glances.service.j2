@@ -1,0 +1,12 @@
+[Unit]
+Description=Glances System Monitoring
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/glances-venv/bin/glances -w -B 0.0.0.0
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

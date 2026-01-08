@@ -1,0 +1,49 @@
+---
+# Deploy Automation & Monitoring Services to dona (Dell OptiPlex)
+# Services: Netdata (parent), Uptime Kuma, N8N, Home Assistant, Homepage
+
+- name: Deploy Automation Services to dona
+  hosts: dona
+  become: true
+  gather_facts: true
+
+  vars:
+    # Service URLs
+    hass_url: "hass.{{ homelab_domain }}"
+    homepage_url: "home.{{ homelab_domain }}"
+
+  pre_tasks:
+    - name: Display deployment info
+      debug:
+        msg: |
+          Deploying to dona ({{ ansible_host }})
+          Services: Netdata, Uptime Kuma, N8N, Home Assistant, Homepage
+
+  roles:
+    - common
+    - docker
+    - netdata
+    - monitoring
+    - n8n
+    - homeassistant
+    - homepage
+
+  tasks:
+    - name: Deployment complete
+      debug:
+        msg: |
+          Automation services deployed to dona!
+
+          Netdata: http://{{ ansible_host }}:19999
+          Uptime Kuma: http://{{ ansible_host }}:3001
+          N8N: http://{{ ansible_host }}:5678
+          Home Assistant: http://{{ ansible_host }}:8123
+          Homepage: http://{{ ansible_host }}:3000
+
+          Next steps:
+          1. Restore N8N data from backup (if migrating)
+          2. Restore Uptime Kuma data from backup (if migrating)
+          3. Update DNS records in PiHole
+          4. Update Caddy reverse proxy config
+          5. Configure Home Assistant initial setup
+          6. Customize Homepage dashboard

@@ -1,0 +1,28 @@
+---
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    restart: unless-stopped
+    mem_limit: 1g
+    mem_reservation: 256m
+    volumes:
+      - ./config:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+    ports:
+      - "8123:8123"
+    environment:
+      - TZ=${TZ:-Australia/Melbourne}
+    networks:
+      - homelab
+    # Uncomment for USB device passthrough (Z-Wave/Zigbee dongles)
+    # devices:
+    #   - /dev/ttyUSB0:/dev/ttyUSB0
+    #   - /dev/ttyACM0:/dev/ttyACM0
+    # privileged: true
+
+networks:
+  homelab:
+    external: true
+    name: homelab

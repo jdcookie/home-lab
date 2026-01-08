@@ -1,0 +1,36 @@
+---
+# Glances system monitoring deployment
+
+- name: Create glances directory
+  file:
+    path: "{{ compose_base_path }}/glances"
+    state: directory
+    mode: '0755'
+
+- name: Copy glances docker-compose file
+  copy:
+    src: "{{ playbook_dir }}/../../compose/glances/docker-compose.yml"
+    dest: "{{ compose_base_path }}/glances/docker-compose.yml"
+    mode: '0644'
+
+- name: Create glances .env file
+  template:
+    src: glances.env.j2
+    dest: "{{ compose_base_path }}/glances/.env"
+    mode: '0600'
+
+- name: Start Glances
+  community.docker.docker_compose_v2:
+    project_src: "{{ compose_base_path }}/glances"
+    state: present
+    pull: always
+
+- name: Wait for Glances API to be ready
+  uri:
+    url: "http://localhost:61208/api/4/cpu"
+    status_code: 200
+  register: glances_health
+  until: glances_health.status == 200
+  retries: 12
+  delay: 5
+  ignore_errors: true

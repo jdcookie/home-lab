@@ -1,0 +1,206 @@
+---
+- Leo (MS-01):
+    - CPU:
+        icon: mdi-chip
+        widget:
+          type: glances
+          url: http://192.168.1.79:61208
+          version: 4
+          metric: cpu
+    - Memory:
+        icon: mdi-memory
+        widget:
+          type: glances
+          url: http://192.168.1.79:61208
+          version: 4
+          metric: memory
+    - Disk:
+        icon: mdi-harddisk
+        widget:
+          type: glances
+          url: http://192.168.1.79:61208
+          version: 4
+          metric: fs:/
+
+- Raph (Media):
+    - CPU:
+        icon: mdi-chip
+        widget:
+          type: glances
+          url: http://192.168.1.136:61208
+          version: 4
+          metric: cpu
+    - Memory:
+        icon: mdi-memory
+        widget:
+          type: glances
+          url: http://192.168.1.136:61208
+          version: 4
+          metric: memory
+    - Disk:
+        icon: mdi-harddisk
+        widget:
+          type: glances
+          url: http://192.168.1.136:61208
+          version: 4
+          metric: fs:/rootfs
+
+- Dona (Automation):
+    - CPU:
+        icon: mdi-chip
+        widget:
+          type: glances
+          url: http://192.168.1.137:61208
+          version: 4
+          metric: cpu
+    - Memory:
+        icon: mdi-memory
+        widget:
+          type: glances
+          url: http://192.168.1.137:61208
+          version: 4
+          metric: memory
+    - Disk:
+        icon: mdi-harddisk
+        widget:
+          type: glances
+          url: http://192.168.1.137:61208
+          version: 4
+          metric: fs:/rootfs
+
+- Splinter (DNS):
+    - CPU:
+        icon: mdi-chip
+        widget:
+          type: glances
+          url: http://192.168.1.10:61208
+          version: 4
+          metric: cpu
+    - Memory:
+        icon: mdi-memory
+        widget:
+          type: glances
+          url: http://192.168.1.10:61208
+          version: 4
+          metric: memory
+    - Disk:
+        icon: mdi-harddisk
+        widget:
+          type: glances
+          url: http://192.168.1.10:61208
+          version: 4
+          metric: fs:/
+
+- TrueNAS (Storage):
+    - Storage Pools:
+        icon: truenas-scale.svg
+        href: https://truenas.lab.jdcookie.com
+        description: ZFS Storage
+        widget:
+          type: truenas
+          url: http://192.168.1.60
+          key: "{{HOMEPAGE_VAR_TRUENAS_API_KEY}}"
+          enablePools: true
+          nasType: scale
+
+- Media:
+    - Jellyfin:
+        icon: jellyfin.svg
+        href: https://jellyfin.lab.jdcookie.com
+        description: Media streaming
+        server: raph
+        container: jellyfin
+    - Jellyseerr:
+        icon: jellyseerr.svg
+        href: https://requests.lab.jdcookie.com
+        description: Media requests
+        server: raph
+        container: jellyseerr
+
+- Downloads:
+    - Sonarr:
+        icon: sonarr.svg
+        href: https://sonarr.lab.jdcookie.com
+        description: TV show management
+        server: raph
+        container: sonarr
+    - Radarr:
+        icon: radarr.svg
+        href: https://radarr.lab.jdcookie.com
+        description: Movie management
+        server: raph
+        container: radarr
+    - Prowlarr:
+        icon: prowlarr.svg
+        href: https://prowlarr.lab.jdcookie.com
+        description: Indexer manager
+        server: raph
+        container: prowlarr
+    - qBittorrent:
+        icon: qbittorrent.svg
+        href: https://qbit.lab.jdcookie.com
+        description: Downloads
+        server: raph
+        container: qbittorrent
+
+- Photos:
+    - Immich:
+        icon: immich.svg
+        href: https://immich.lab.jdcookie.com
+        description: Photo management
+        server: leo
+        container: immich_server
+    - ImmichFrame:
+        icon: mdi-image-frame
+        href: https://frame.lab.jdcookie.com
+        description: Digital photo frame
+        server: leo
+        container: immich-frame
+
+- Automation:
+    - N8N:
+        icon: n8n.svg
+        href: https://n8n.lab.jdcookie.com
+        description: Workflow automation
+        server: dona
+        container: n8n
+    - Home Assistant:
+        icon: home-assistant.svg
+        href: https://hass.lab.jdcookie.com
+        description: Home automation
+        server: dona
+        container: homeassistant
+
+- Monitoring:
+    - Uptime Kuma:
+        icon: uptime-kuma.svg
+        href: https://status.lab.jdcookie.com
+        description: Service monitoring
+        server: dona
+        container: uptime-kuma
+    - Netdata:
+        icon: netdata.svg
+        href: https://netdata.lab.jdcookie.com
+        description: System metrics
+        server: dona
+        container: netdata
+
+- Infrastructure:
+    - Proxmox:
+        icon: proxmox.svg
+        href: https://192.168.1.79:8006
+        description: Hypervisor
+    - TrueNAS:
+        icon: truenas-scale.svg
+        href: https://192.168.1.60
+        description: Network storage
+    - PiHole:
+        icon: pi-hole.svg
+        href: http://192.168.1.10/admin
+        description: DNS & ad blocking
+    - Portainer:
+        icon: portainer.svg
+        href: https://portainer.lab.jdcookie.com
+        description: Container management
+        server: leo
+        container: portainer

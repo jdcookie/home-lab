@@ -1,0 +1,26 @@
+---
+services:
+  glances:
+    image: nicolargo/glances:latest
+    container_name: glances
+    restart: unless-stopped
+    pid: host
+    mem_limit: 128m
+    mem_reservation: 32m
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/os-release:/etc/os-release:ro
+      - /:/rootfs:ro
+    ports:
+      - "61208:61208"
+    environment:
+      - TZ=${TZ:-Australia/Melbourne}
+      - GLANCES_OPT=-w --fs-free-space
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true
+    name: homelab

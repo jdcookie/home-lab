@@ -1,0 +1,6 @@
+---
+- name: restart glances
+  systemd:
+    name: glances
+    state: restarted
+    daemon_reload: true

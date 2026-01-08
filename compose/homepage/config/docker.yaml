@@ -1,0 +1,11 @@
+---
+dona:
+  socket: /var/run/docker.sock
+
+# Remote Docker hosts - requires Docker API exposed or SSH tunnel
+# raph:
+#   host: 192.168.1.136
+#   port: 2375
+# leo:
+#   host: 192.168.1.50
+#   port: 2375

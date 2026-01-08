@@ -1,0 +1,12 @@
+---
+# Update Homepage dashboard configuration
+
+- name: Update Homepage config
+  hosts: dona
+  become: true
+  vars:
+    compose_base_path: /opt/homelab/compose
+    timezone: "{{ lookup('env', 'TZ') | default('Australia/Melbourne', true) }}"
+    truenas_api_key: "{{ vault_truenas_api_key | default('') }}"
+  roles:
+    - homepage

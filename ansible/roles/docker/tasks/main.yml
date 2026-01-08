@@ -83,3 +83,6 @@
     - n8n
     - portainer
     - monitoring
+    - netdata
+    - homeassistant
+    - homepage

@@ -1,0 +1,302 @@
+---
+# Control Node role - Ansible control node + Claude Code dev environment
+# Target: LXC container "leo" for running infrastructure automation
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install base packages
+  apt:
+    name:
+      - curl
+      - wget
+      - vim
+      - git
+      - htop
+      - net-tools
+      - dnsutils
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - python3
+      - python3-pip
+      - python3-venv
+      - openssh-client
+      - sudo
+      - unzip
+      - jq
+      - tree
+      - tmux
+    state: present
+
+- name: Set timezone
+  timezone:
+    name: "{{ timezone | default('America/Chicago') }}"
+
+# =============================================================================
+# User Configuration
+# =============================================================================
+
+- name: Create control user
+  user:
+    name: "{{ control_user }}"
+    shell: "{{ control_user_shell }}"
+    groups: "{{ control_user_groups }}"
+    append: yes
+    create_home: yes
+    state: present
+
+- name: Allow control user passwordless sudo
+  copy:
+    content: "{{ control_user }} ALL=(ALL) NOPASSWD:ALL\n"
+    dest: "/etc/sudoers.d/{{ control_user }}"
+    mode: '0440'
+    validate: 'visudo -cf %s'
+
+# =============================================================================
+# SSH Configuration
+# =============================================================================
+
+- name: Create .ssh directory
+  file:
+    path: "/home/{{ control_user }}/.ssh"
+    state: directory
+    owner: "{{ control_user }}"
+    group: "{{ control_user }}"
+    mode: '0700'
+
+- name: Generate SSH keypair
+  community.crypto.openssh_keypair:
+    path: "/home/{{ control_user }}/.ssh/id_{{ ssh_key_type }}"
+    type: "{{ ssh_key_type }}"
+    comment: "{{ ssh_key_comment }}"
+    owner: "{{ control_user }}"
+    group: "{{ control_user }}"
+  when: generate_ssh_key | bool
+  register: ssh_key_result
+
+- name: Display generated SSH public key
+  debug:
+    msg: |
+      ============================================================
+      SSH PUBLIC KEY (add this to target hosts' authorized_keys):
+
+      {{ ssh_key_result.public_key }}
+
+      ============================================================
+  when:
+    - generate_ssh_key | bool
+    - ssh_key_result.changed
+
+# =============================================================================
+# Node.js Installation (for Claude Code)
+# =============================================================================
+
+- name: Check if Node.js is installed
+  command: node --version
+  register: node_version_check
+  changed_when: false
+  failed_when: false
+
+- name: Add NodeSource GPG key
+  shell: |
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg
+  args:
+    creates: /usr/share/keyrings/nodesource.gpg
+  when: node_version_check.rc != 0
+
+- name: Add NodeSource repository
+  copy:
+    content: |
+      deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_{{ nodejs_major_version }}.x nodistro main
+    dest: /etc/apt/sources.list.d/nodesource.list
+    mode: '0644'
+  when: node_version_check.rc != 0
+  register: nodesource_repo
+
+- name: Update apt cache after adding NodeSource
+  apt:
+    update_cache: yes
+  when: nodesource_repo.changed
+
+- name: Install Node.js
+  apt:
+    name: nodejs
+    state: present
+
+- name: Verify Node.js installation
+  command: node --version
+  register: node_version
+  changed_when: false
+
+- name: Display Node.js version
+  debug:
+    msg: "Node.js installed: {{ node_version.stdout }}"
+
+# =============================================================================
+# Python/Ansible Installation
+# =============================================================================
+
+- name: Create Python virtual environment for Ansible
+  become_user: "{{ control_user }}"
+  command: python3 -m venv /home/{{ control_user }}/.venv/ansible
+  args:
+    creates: /home/{{ control_user }}/.venv/ansible/bin/activate
+
+- name: Install Ansible and related packages in venv
+  become_user: "{{ control_user }}"
+  pip:
+    name: "{{ python_packages }}"
+    virtualenv: "/home/{{ control_user }}/.venv/ansible"
+    state: present
+
+- name: Add venv activation to bashrc
+  become_user: "{{ control_user }}"
+  lineinfile:
+    path: "/home/{{ control_user }}/.bashrc"
+    line: 'source ~/.venv/ansible/bin/activate'
+    create: yes
+
+- name: Install ansible.posix collection
+  become_user: "{{ control_user }}"
+  command: /home/{{ control_user }}/.venv/ansible/bin/ansible-galaxy collection install ansible.posix community.crypto community.general
+  args:
+    creates: /home/{{ control_user }}/.ansible/collections/ansible_collections/ansible/posix
+
+# =============================================================================
+# Claude Code Installation
+# =============================================================================
+
+- name: Install Claude Code CLI
+  become_user: "{{ control_user }}"
+  npm:
+    name: "@anthropic-ai/claude-code"
+    global: yes
+    state: present
+  environment:
+    PATH: "/usr/bin:{{ ansible_env.PATH }}"
+  when: install_claude_code | bool
+
+- name: Verify Claude Code installation
+  become_user: "{{ control_user }}"
+  command: claude --version
+  register: claude_version
+  changed_when: false
+  failed_when: false
+  when: install_claude_code | bool
+
+- name: Display Claude Code status
+  debug:
+    msg: "Claude Code installed: {{ claude_version.stdout | default('Installation pending - run: npm install -g @anthropic-ai/claude-code') }}"
+  when: install_claude_code | bool
+
+# =============================================================================
+# Git Configuration
+# =============================================================================
+
+- name: Configure git user name
+  become_user: "{{ control_user }}"
+  git_config:
+    name: user.name
+    value: "{{ git_user_name }}"
+    scope: global
+  when: git_user_name | length > 0
+
+- name: Configure git user email
+  become_user: "{{ control_user }}"
+  git_config:
+    name: user.email
+    value: "{{ git_user_email }}"
+    scope: global
+  when: git_user_email | length > 0
+
+- name: Configure git default branch
+  become_user: "{{ control_user }}"
+  git_config:
+    name: init.defaultBranch
+    value: main
+    scope: global
+
+- name: Configure git pull strategy
+  become_user: "{{ control_user }}"
+  git_config:
+    name: pull.rebase
+    value: "false"
+    scope: global
+
+# =============================================================================
+# Home Lab Repository
+# =============================================================================
+
+- name: Create Code directory
+  become_user: "{{ control_user }}"
+  file:
+    path: "/home/{{ control_user }}/Code"
+    state: directory
+    mode: '0755'
+
+- name: Clone home-lab repository
+  become_user: "{{ control_user }}"
+  git:
+    repo: "{{ homelab_repo_url }}"
+    dest: "{{ homelab_clone_path }}"
+    version: main
+    accept_hostkey: yes
+  when: homelab_repo_url | length > 0
+  register: repo_clone
+  failed_when: false
+
+- name: Repository clone status
+  debug:
+    msg: |
+      {% if repo_clone.changed | default(false) %}
+      Repository cloned to {{ homelab_clone_path }}
+      {% elif repo_clone.failed | default(false) %}
+      Repository clone failed - you may need to set up SSH keys first.
+      Run: ssh-keygen -t ed25519 -C "{{ control_user }}@leo"
+      Then add the public key to GitHub.
+      {% else %}
+      Repository already exists at {{ homelab_clone_path }}
+      {% endif %}
+
+# =============================================================================
+# Final Setup
+# =============================================================================
+
+- name: Create ansible.cfg symlink
+  become_user: "{{ control_user }}"
+  file:
+    src: "{{ homelab_clone_path }}/ansible/ansible.cfg"
+    dest: "/home/{{ control_user }}/.ansible.cfg"
+    state: link
+    force: yes
+  when: repo_clone.changed | default(false) or repo_clone.skipped | default(false) == false
+  failed_when: false
+
+- name: Display setup summary
+  debug:
+    msg: |
+      ============================================================
+      LEO CONTROL NODE SETUP COMPLETE
+
+      User: {{ control_user }}
+      Node.js: {{ node_version.stdout }}
+      Ansible: Installed in ~/.venv/ansible
+      Claude Code: {{ 'Installed' if (claude_version.rc | default(1)) == 0 else 'Run: npm install -g @anthropic-ai/claude-code' }}
+
+      NEXT STEPS:
+      1. SSH into leo: ssh {{ control_user }}@{{ ansible_host }}
+      2. Set up SSH keys for GitHub (if not done):
+         ssh-keygen -t ed25519 -C "{{ control_user }}@leo"
+         cat ~/.ssh/id_ed25519.pub  # Add to GitHub
+      3. Clone repo: git clone {{ homelab_repo_url }} ~/Code/home-lab
+      4. Set up Ansible vault password
+      5. Run Claude: claude
+
+      To run playbooks from leo:
+        cd ~/Code/home-lab/ansible
+        ansible-playbook playbooks/site.yml --ask-vault-pass
+      ============================================================

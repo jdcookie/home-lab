@@ -1,0 +1,33 @@
+---
+# Control node defaults
+
+# User configuration
+control_user: jcook
+control_user_shell: /bin/bash
+control_user_groups:
+  - sudo
+
+# Node.js version (LTS for Claude Code)
+nodejs_major_version: 20
+
+# Python/Ansible
+python_packages:
+  - ansible
+  - ansible-lint
+  - jmespath
+
+# Git configuration
+git_user_name: ""
+git_user_email: ""
+
+# Home lab repository
+homelab_repo_url: "https://github.com/your-username/home-lab.git"
+homelab_clone_path: "/home/{{ control_user }}/Code/home-lab"
+
+# SSH key generation
+generate_ssh_key: true
+ssh_key_type: ed25519
+ssh_key_comment: "{{ control_user }}@leo"
+
+# Claude Code
+install_claude_code: true

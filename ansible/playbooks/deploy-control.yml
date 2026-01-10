@@ -1,0 +1,86 @@
+---
+# Deploy Control Node - Ansible Control Node + Claude Code Development Environment
+#
+# This playbook configures the "leo" LXC container as your primary
+# infrastructure management workstation.
+#
+# Prerequisites:
+#   1. LXC container 103 created in Proxmox (unprivileged, 1GB RAM, 20GB disk)
+#   2. LEO_IP set in .env file
+#   3. SSH access configured (user: jcook with sudo)
+#   4. Container has network access
+#
+# Usage:
+#   # First run (from current machine):
+#   ansible-playbook playbooks/deploy-control.yml
+#
+#   # After migration (from leo itself):
+#   ansible-playbook playbooks/deploy-control.yml --connection=local
+#
+# What this sets up:
+#   - Node.js 20 LTS (for Claude Code)
+#   - Python 3 + Ansible in virtualenv
+#   - Claude Code CLI
+#   - Git configuration
+#   - SSH key generation
+#   - Home-lab repository clone
+
+- name: Deploy Leo Control Node
+  hosts: leo
+  become: yes
+
+  vars_prompt:
+    - name: git_user_name
+      prompt: "Git user.name (leave empty to skip)"
+      private: no
+      default: ""
+
+    - name: git_user_email
+      prompt: "Git user.email (leave empty to skip)"
+      private: no
+      default: ""
+
+  pre_tasks:
+    - name: Verify we're running on leo
+      assert:
+        that:
+          - control_node | default(false) | bool
+        fail_msg: "This playbook should only run on the leo control node"
+
+    - name: Gather facts
+      setup:
+        gather_subset:
+          - min
+          - network
+
+  roles:
+    - role: control-node
+      vars:
+        git_user_name: "{{ git_user_name }}"
+        git_user_email: "{{ git_user_email }}"
+
+  post_tasks:
+    - name: Final instructions
+      debug:
+        msg: |
+          ============================================================
+          LEO SETUP COMPLETE!
+
+          You can now SSH into leo and run Claude Code:
+
+            ssh jcook@{{ ansible_host }}
+            cd ~/Code/home-lab
+            claude
+
+          To run Ansible playbooks from leo:
+
+            cd ~/Code/home-lab/ansible
+            source ~/.venv/ansible/bin/activate
+            ansible-playbook playbooks/site.yml --ask-vault-pass
+
+          IMPORTANT: Copy your .env and vault.yml to leo:
+
+            scp .env jcook@{{ ansible_host }}:~/Code/home-lab/
+            scp ansible/inventory/group_vars/vault.yml jcook@{{ ansible_host }}:~/Code/home-lab/ansible/inventory/group_vars/
+
+          ============================================================

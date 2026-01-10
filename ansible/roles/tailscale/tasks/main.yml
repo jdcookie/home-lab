@@ -29,6 +29,7 @@
     sysctl_file: /etc/sysctl.d/99-tailscale.conf
     state: present
     reload: yes
+  register: ipv4_forward_result
 
 - name: Enable IP forwarding for subnet routing (IPv6)
   sysctl:
@@ -37,6 +38,24 @@
     sysctl_file: /etc/sysctl.d/99-tailscale.conf
     state: present
     reload: yes
+  register: ipv6_forward_result
+
+- name: Explicitly reload sysctl settings
+  command: sysctl -p /etc/sysctl.d/99-tailscale.conf
+  when: ipv4_forward_result.changed or ipv6_forward_result.changed
+  changed_when: false
+
+- name: Verify IP forwarding is enabled (IPv4)
+  command: sysctl -n net.ipv4.ip_forward
+  register: ipv4_forward_check
+  changed_when: false
+  failed_when: ipv4_forward_check.stdout != '1'
+
+- name: Verify IP forwarding is enabled (IPv6)
+  command: sysctl -n net.ipv6.conf.all.forwarding
+  register: ipv6_forward_check
+  changed_when: false
+  failed_when: ipv6_forward_check.stdout != '1'
 
 - name: Ensure tailscaled service is enabled and started
   systemd:
@@ -95,6 +114,10 @@
       Tailscale IP: {{ tailscale_ip.stdout }}
       Hostname: {{ tailscale_hostname }}
       Advertised routes: {{ tailscale_advertise_routes }}
+
+      IP Forwarding Status:
+        - IPv4: {{ 'ENABLED ✓' if ipv4_forward_check.stdout == '1' else 'DISABLED ✗' }}
+        - IPv6: {{ 'ENABLED ✓' if ipv6_forward_check.stdout == '1' else 'DISABLED ✗' }}
 
       IMPORTANT: You must approve the subnet route in Tailscale Admin!
 

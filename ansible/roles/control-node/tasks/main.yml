@@ -171,13 +171,10 @@
 # =============================================================================
 
 - name: Install Claude Code CLI
-  become_user: "{{ control_user }}"
   npm:
     name: "@anthropic-ai/claude-code"
     global: yes
     state: present
-  environment:
-    PATH: "/usr/bin:{{ ansible_env.PATH }}"
   when: install_claude_code | bool
 
 - name: Verify Claude Code installation

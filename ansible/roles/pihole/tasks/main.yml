@@ -83,6 +83,8 @@
       address=/{{ uptime_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ netdata_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ truenas_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ homepage_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ hass_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/docker.{{ homelab_domain }}/{{ hostvars['docker-services']['ansible_host'] }}
       {% if tailscale_enabled | default(true) %}
       # Tailscale - Remote Access VPN
@@ -100,6 +102,7 @@
       address=/{{ radarr_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ prowlarr_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ qbittorrent_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ unmanic_url }}/{{ hostvars['caddy']['ansible_host'] }}
       {% endif %}
     dest: /etc/dnsmasq.d/99-homelab-dns.conf
     mode: '0644'

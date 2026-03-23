@@ -92,7 +92,7 @@
 }
 
 # Home Assistant (dona)
-{{ hass_url | default('hass.' + homelab_domain) }} {
+{{ hass_url }} {
     import tls_dns
     reverse_proxy {{ hostvars['dona']['ansible_host'] }}:8123 {
         header_up Host {upstream_hostport}
@@ -103,7 +103,7 @@
 }
 
 # Homepage Dashboard (dona)
-{{ homepage_url | default('home.' + homelab_domain) }} {
+{{ homepage_url }} {
     import tls_dns
     reverse_proxy {{ hostvars['dona']['ansible_host'] }}:3000 {
         header_up Host {upstream_hostport}
@@ -203,6 +203,17 @@
 {{ qbittorrent_url }} {
     import tls_dns
     reverse_proxy {{ hostvars['raph']['ansible_host'] }}:8080 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+
+# Unmanic - Media Transcoding
+{{ unmanic_url }} {
+    import tls_dns
+    reverse_proxy {{ hostvars['raph']['ansible_host'] }}:8888 {
         header_up Host {upstream_hostport}
         header_up X-Real-IP {remote_host}
         header_up X-Forwarded-For {remote_host}

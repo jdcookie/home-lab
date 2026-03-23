@@ -13,7 +13,7 @@ homelab_dns_primary: "{{ lookup('pipe', 'grep ^PIHOLE_IP= ../../.env | cut -d= -
 homelab_dns_secondary: "1.1.1.1"
 
 # Timezone
-timezone: "{{ lookup('pipe', 'grep ^TIMEZONE= ../../.env | cut -d= -f2') | default('America/New_York', true) }}"
+timezone: "{{ lookup('pipe', 'grep ^TIMEZONE= ../../.env | cut -d= -f2') | default('Australia/Melbourne', true) }}"
 
 # Docker configuration
 docker_version: "latest"
@@ -28,8 +28,11 @@ portainer_url: "portainer.{{ homelab_domain }}"
 uptime_url: "status.{{ homelab_domain }}"
 netdata_url: "netdata.{{ homelab_domain }}"
 truenas_url: "truenas.{{ homelab_domain }}"
+homepage_url: "home.{{ homelab_domain }}"
+hass_url: "hass.{{ homelab_domain }}"
 
 # TrueNAS VM configuration
+truenas_api_key: "{{ lookup('pipe', 'grep ^TRUENAS_API_KEY= ../../.env | cut -d= -f2') | default('', true) }}"
 truenas_vm_id: 201
 truenas_memory: 6144   # 6 GB max - reduced since pool is all-SSD (less ARC needed)
 truenas_balloon: 3072  # Minimum RAM (3 GB) - can balloon up to truenas_memory
@@ -49,6 +52,17 @@ netdata_stream_api_key: "{{ lookup('pipe', 'grep ^NETDATA_STREAM_API_KEY= ../../
 
 # NFS mounts from TrueNAS
 truenas_pool_name: "{{ lookup('pipe', 'grep ^TRUENAS_POOL_NAME= ../../.env | cut -d= -f2') | default('tank', true) }}"
+
+# SMB Shares for Mac access (configured via TrueNAS API)
+# Paths must match existing TrueNAS datasets
+smb_shares:
+  - name: "photos"
+    path: "/mnt/ice-king/photos"
+    comment: "Photo library"
+  - name: "media"
+    path: "/mnt/ice-king/video"
+    comment: "Media library"
+
 nfs_mounts:
   - src: "{{ hostvars['truenas']['ansible_host'] }}:/mnt/{{ truenas_pool_name }}/video"
     mount_point: /mnt/video
@@ -90,6 +104,7 @@ sonarr_url: "sonarr.{{ homelab_domain }}"
 radarr_url: "radarr.{{ homelab_domain }}"
 prowlarr_url: "prowlarr.{{ homelab_domain }}"
 qbittorrent_url: "qbit.{{ homelab_domain }}"
+unmanic_url: "unmanic.{{ homelab_domain }}"
 
 # Arr stack paths
 arr_media_path: "/mnt/media"

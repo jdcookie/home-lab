@@ -1,0 +1,24 @@
+---
+# Code node defaults
+
+# User configuration
+code_user: jcook
+code_user_shell: /bin/bash
+code_user_groups:
+  - sudo
+
+# NVM configuration
+nvm_version: "0.40.1"
+node_default_version: "22"  # LTS version to install by default
+
+# Git configuration
+git_user_name: ""
+git_user_email: ""
+
+# SSH key generation
+generate_ssh_key: true
+ssh_key_type: ed25519
+ssh_key_comment: "{{ code_user }}@code"
+
+# Claude Code
+install_claude_code: true

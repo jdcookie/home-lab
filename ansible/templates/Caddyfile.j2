@@ -113,6 +113,28 @@
     }
 }
 
+# Idea Scout - Frontend (dona)
+{{ idea_scout_url }} {
+    import tls_dns
+    reverse_proxy {{ hostvars['dona']['ansible_host'] }}:3002 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+
+# Idea Scout - API (dona)
+{{ idea_scout_api_url }} {
+    import tls_dns
+    reverse_proxy {{ hostvars['dona']['ansible_host'] }}:8000 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+
 {% if immich_enabled | default(true) %}
 # Immich Photo Management
 {{ immich_url }} {

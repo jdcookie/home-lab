@@ -1,0 +1,32 @@
+---
+# Configure SMB shares on TrueNAS for Mac access
+#
+# Prerequisites:
+#   1. Generate TrueNAS API key: Credentials -> API Keys -> Add
+#   2. Add to .env: TRUENAS_API_KEY=your-api-key-here
+#
+# Usage:
+#   ansible-playbook playbooks/deploy-truenas-smb.yml
+
+- name: Configure TrueNAS SMB shares
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars_files:
+    - ../inventory/group_vars/all/all.yml
+
+  pre_tasks:
+    - name: Verify TrueNAS API key is configured
+      assert:
+        that:
+          - truenas_api_key is defined
+          - truenas_api_key | length > 0
+        fail_msg: |
+          TrueNAS API key not configured!
+
+          1. Generate API key in TrueNAS: Credentials -> API Keys -> Add
+          2. Add to .env: TRUENAS_API_KEY=your-api-key-here
+
+  roles:
+    - truenas-smb

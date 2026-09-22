@@ -47,6 +47,15 @@
     - sonarr
     - radarr
     - jellyseerr
+    - unmanic
+
+- name: Create unmanic cache directory
+  file:
+    path: "{{ unmanic_cache_path | default('/tmp/unmanic') }}"
+    state: directory
+    mode: '0755'
+    owner: '{{ arr_puid | default("1000") }}'
+    group: '{{ arr_pgid | default("1000") }}'
 
 - name: Fix arr config directory ownership
   file:
@@ -62,6 +71,7 @@
     - sonarr
     - radarr
     - jellyseerr
+    - unmanic
 
 - name: Create media directories
   file:

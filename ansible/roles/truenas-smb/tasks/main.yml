@@ -1,0 +1,111 @@
+---
+# Configure SMB shares on TrueNAS SCALE via REST API
+
+- name: Wait for TrueNAS API to be available
+  uri:
+    url: "https://{{ truenas_ip }}/api/v2.0/system/info"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ truenas_api_key }}"
+    validate_certs: false
+    status_code: 200
+  register: truenas_info
+  retries: 5
+  delay: 10
+  until: truenas_info.status == 200
+
+- name: Display TrueNAS version
+  debug:
+    msg: "Connected to TrueNAS {{ truenas_info.json.version }}"
+
+- name: Get SMB service status
+  uri:
+    url: "https://{{ truenas_ip }}/api/v2.0/service?service=cifs"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ truenas_api_key }}"
+    validate_certs: false
+  register: smb_service_list
+
+- name: Set SMB service facts
+  set_fact:
+    smb_service: "{{ smb_service_list.json[0] }}"
+  when: smb_service_list.json | length > 0
+
+- name: Enable SMB service to start on boot
+  uri:
+    url: "https://{{ truenas_ip }}/api/v2.0/service/id/{{ smb_service.id }}"
+    method: PUT
+    headers:
+      Authorization: "Bearer {{ truenas_api_key }}"
+    validate_certs: false
+    body_format: json
+    body:
+      enable: true
+    status_code: [200, 201]
+  when: smb_service is defined and not smb_service.enable
+
+- name: Start SMB service if not running
+  uri:
+    url: "https://{{ truenas_ip }}/api/v2.0/service/start"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ truenas_api_key }}"
+    validate_certs: false
+    body_format: json
+    body:
+      service: "cifs"
+    status_code: [200, 201, 422]
+  when: smb_service is defined and smb_service.state != "RUNNING"
+
+- name: Get existing SMB shares
+  uri:
+    url: "https://{{ truenas_ip }}/api/v2.0/sharing/smb"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ truenas_api_key }}"
+    validate_certs: false
+  register: existing_shares
+
+- name: Extract existing share names
+  set_fact:
+    existing_share_names: "{{ existing_shares.json | map(attribute='name') | list }}"
+
+- name: Create SMB shares
+  uri:
+    url: "https://{{ truenas_ip }}/api/v2.0/sharing/smb"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ truenas_api_key }}"
+    validate_certs: false
+    body_format: json
+    body:
+      name: "{{ item.name }}"
+      path: "{{ item.path }}"
+      comment: "{{ item.comment | default('') }}"
+      browsable: true
+      ro: false
+      guestok: false
+      enabled: true
+    status_code: [200, 201]
+  loop: "{{ smb_shares }}"
+  when: item.name not in existing_share_names
+  register: created_shares
+
+- name: Display created shares
+  debug:
+    msg: "Created SMB share: {{ item.item.name }} -> {{ item.item.path }}"
+  loop: "{{ created_shares.results }}"
+  when: item.changed | default(false)
+
+- name: Display SMB connection instructions
+  debug:
+    msg:
+      - "SMB shares configured successfully!"
+      - ""
+      - "Connect from Mac:"
+      - "  1. Finder -> Go -> Connect to Server (Cmd+K)"
+      - "  2. Enter: smb://{{ truenas_ip }}/<share_name>"
+      - ""
+      - "Available shares:"
+      - "{% for share in smb_shares %}  - smb://{{ truenas_ip }}/{{ share.name }}\n{% endfor %}"

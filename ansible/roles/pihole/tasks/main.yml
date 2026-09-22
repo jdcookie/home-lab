@@ -95,6 +95,9 @@
       address=/{{ immich_url }}/{{ hostvars['caddy']['ansible_host'] }}
       address=/{{ immichframe_url }}/{{ hostvars['caddy']['ansible_host'] }}
       {% endif %}
+      # Idea Scout
+      address=/{{ idea_scout_url }}/{{ hostvars['caddy']['ansible_host'] }}
+      address=/{{ idea_scout_api_url }}/{{ hostvars['caddy']['ansible_host'] }}
       {% if arr_stack_enabled | default(true) %}
       # Arr Stack - Media Automation
       address=/{{ jellyseerr_url }}/{{ hostvars['caddy']['ansible_host'] }}

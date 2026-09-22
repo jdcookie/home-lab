@@ -1,0 +1,288 @@
+---
+# Code Node role - Node.js development environment with NVM
+# Target: LXC container "code" for Node.js development projects
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install base packages
+  apt:
+    name:
+      - curl
+      - wget
+      - vim
+      - git
+      - htop
+      - net-tools
+      - dnsutils
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - openssh-client
+      - sudo
+      - unzip
+      - jq
+      - tree
+      - tmux
+      - build-essential  # Required for native Node.js modules
+    state: present
+
+- name: Set timezone
+  timezone:
+    name: "{{ timezone | default('America/Chicago') }}"
+
+# =============================================================================
+# User Configuration
+# =============================================================================
+
+- name: Create code user
+  user:
+    name: "{{ code_user }}"
+    shell: "{{ code_user_shell }}"
+    groups: "{{ code_user_groups }}"
+    append: yes
+    create_home: yes
+    state: present
+
+- name: Allow code user passwordless sudo
+  copy:
+    content: "{{ code_user }} ALL=(ALL) NOPASSWD:ALL\n"
+    dest: "/etc/sudoers.d/{{ code_user }}"
+    mode: '0440'
+    validate: 'visudo -cf %s'
+
+# =============================================================================
+# SSH Configuration
+# =============================================================================
+
+- name: Create .ssh directory
+  file:
+    path: "/home/{{ code_user }}/.ssh"
+    state: directory
+    owner: "{{ code_user }}"
+    group: "{{ code_user }}"
+    mode: '0700'
+
+- name: Generate SSH keypair
+  community.crypto.openssh_keypair:
+    path: "/home/{{ code_user }}/.ssh/id_{{ ssh_key_type }}"
+    type: "{{ ssh_key_type }}"
+    comment: "{{ ssh_key_comment }}"
+    owner: "{{ code_user }}"
+    group: "{{ code_user }}"
+  when: generate_ssh_key | bool
+  register: ssh_key_result
+
+- name: Display generated SSH public key
+  debug:
+    msg: |
+      ============================================================
+      SSH PUBLIC KEY (add this to GitHub/GitLab):
+
+      {{ ssh_key_result.public_key }}
+
+      ============================================================
+  when:
+    - generate_ssh_key | bool
+    - ssh_key_result.changed
+
+# =============================================================================
+# NVM Installation
+# =============================================================================
+
+- name: Check if NVM is installed
+  become_user: "{{ code_user }}"
+  stat:
+    path: "/home/{{ code_user }}/.nvm/nvm.sh"
+  register: nvm_installed
+
+- name: Download NVM install script
+  become_user: "{{ code_user }}"
+  get_url:
+    url: "https://raw.githubusercontent.com/nvm-sh/nvm/v{{ nvm_version }}/install.sh"
+    dest: "/tmp/nvm-install.sh"
+    mode: '0755'
+  when: not nvm_installed.stat.exists
+
+- name: Install NVM
+  become_user: "{{ code_user }}"
+  command: bash /tmp/nvm-install.sh
+  args:
+    creates: "/home/{{ code_user }}/.nvm/nvm.sh"
+  environment:
+    HOME: "/home/{{ code_user }}"
+  when: not nvm_installed.stat.exists
+
+- name: Clean up NVM install script
+  file:
+    path: /tmp/nvm-install.sh
+    state: absent
+
+- name: Install default Node.js version via NVM
+  become_user: "{{ code_user }}"
+  shell: |
+    source ~/.nvm/nvm.sh
+    nvm install {{ node_default_version }}
+    nvm alias default {{ node_default_version }}
+  args:
+    executable: /bin/bash
+    creates: "/home/{{ code_user }}/.nvm/versions/node"
+  environment:
+    HOME: "/home/{{ code_user }}"
+
+- name: Verify Node.js installation
+  become_user: "{{ code_user }}"
+  shell: |
+    source ~/.nvm/nvm.sh
+    node --version
+  args:
+    executable: /bin/bash
+  environment:
+    HOME: "/home/{{ code_user }}"
+  register: node_version
+  changed_when: false
+
+- name: Display Node.js version
+  debug:
+    msg: "Node.js installed via NVM: {{ node_version.stdout }}"
+
+# =============================================================================
+# Claude Code Installation (user-local npm global)
+# =============================================================================
+
+- name: Create npm global directory for user
+  become_user: "{{ code_user }}"
+  file:
+    path: "/home/{{ code_user }}/.npm-global"
+    state: directory
+    mode: '0755'
+  when: install_claude_code | bool
+
+- name: Configure npm to use user-local global directory
+  become_user: "{{ code_user }}"
+  shell: |
+    source ~/.nvm/nvm.sh
+    npm config set prefix "/home/{{ code_user }}/.npm-global"
+  args:
+    executable: /bin/bash
+    creates: "/home/{{ code_user }}/.npmrc"
+  environment:
+    HOME: "/home/{{ code_user }}"
+  when: install_claude_code | bool
+
+- name: Add npm global bin to PATH in bashrc
+  become_user: "{{ code_user }}"
+  lineinfile:
+    path: "/home/{{ code_user }}/.bashrc"
+    line: 'export PATH="$HOME/.npm-global/bin:$PATH"'
+    create: yes
+  when: install_claude_code | bool
+
+- name: Install Claude Code CLI (user-local)
+  become_user: "{{ code_user }}"
+  shell: |
+    source ~/.nvm/nvm.sh
+    npm install -g @anthropic-ai/claude-code
+  args:
+    executable: /bin/bash
+    creates: "/home/{{ code_user }}/.npm-global/bin/claude"
+  environment:
+    HOME: "/home/{{ code_user }}"
+  when: install_claude_code | bool
+
+- name: Verify Claude Code installation
+  become_user: "{{ code_user }}"
+  command: "/home/{{ code_user }}/.npm-global/bin/claude --version"
+  register: claude_version
+  changed_when: false
+  failed_when: false
+  when: install_claude_code | bool
+
+- name: Display Claude Code status
+  debug:
+    msg: "Claude Code installed: {{ claude_version.stdout | default('Installation pending') }}"
+  when: install_claude_code | bool
+
+# =============================================================================
+# Git Configuration
+# =============================================================================
+
+- name: Configure git user name
+  become_user: "{{ code_user }}"
+  git_config:
+    name: user.name
+    value: "{{ git_user_name }}"
+    scope: global
+  when: git_user_name | length > 0
+
+- name: Configure git user email
+  become_user: "{{ code_user }}"
+  git_config:
+    name: user.email
+    value: "{{ git_user_email }}"
+    scope: global
+  when: git_user_email | length > 0
+
+- name: Configure git default branch
+  become_user: "{{ code_user }}"
+  git_config:
+    name: init.defaultBranch
+    value: main
+    scope: global
+
+- name: Configure git pull strategy
+  become_user: "{{ code_user }}"
+  git_config:
+    name: pull.rebase
+    value: "false"
+    scope: global
+
+# =============================================================================
+# Project Directory
+# =============================================================================
+
+- name: Create Code directory
+  become_user: "{{ code_user }}"
+  file:
+    path: "/home/{{ code_user }}/Code"
+    state: directory
+    mode: '0755'
+
+# =============================================================================
+# Final Setup
+# =============================================================================
+
+- name: Display setup summary
+  debug:
+    msg: |
+      ============================================================
+      CODE NODE SETUP COMPLETE
+
+      User: {{ code_user }}
+      Node.js: {{ node_version.stdout }} (via NVM)
+      NVM Version: {{ nvm_version }}
+      Claude Code: {{ 'Installed' if (claude_version.rc | default(1)) == 0 else 'Run: npm install -g @anthropic-ai/claude-code' }}
+      npm global: ~/.npm-global (no sudo required for updates)
+
+      NVM USAGE:
+        nvm install 18      # Install Node 18
+        nvm install 20      # Install Node 20
+        nvm use 18          # Switch to Node 18
+        nvm list            # List installed versions
+        nvm alias default 20  # Set default version
+
+      CLAUDE CODE:
+        claude              # Start Claude Code
+        npm update -g @anthropic-ai/claude-code  # Update Claude Code
+
+      NEXT STEPS:
+      1. SSH into code: ssh {{ code_user }}@{{ ansible_host }}
+      2. Add SSH key to GitHub:
+         cat ~/.ssh/id_{{ ssh_key_type }}.pub
+      3. Clone your projects to ~/Code/
+      4. Run Claude: claude
+
+      ============================================================

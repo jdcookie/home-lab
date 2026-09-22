@@ -27,3 +27,4 @@ caddy_admin_email: "admin@example.com"
 
 arr_vpn_wireguard_private_key: "YOUR_WIREGUARD_PRIVATE_KEY_HERE"
 arr_vpn_wireguard_address: "10.x.x.x/32"
+

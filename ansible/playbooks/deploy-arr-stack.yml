@@ -3,7 +3,7 @@
 # Requires: VPN credentials in vault.yml, NFS media mount configured
 
 - name: Deploy Arr Stack
-  hosts: docker_hosts
+  hosts: raph
   become: true
   gather_facts: true
 

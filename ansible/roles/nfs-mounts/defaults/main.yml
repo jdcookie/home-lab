@@ -1,0 +1,10 @@
+---
+# Default NFS mount options
+# _netdev: Mark as network device (mount after network is up)
+# nofail: Don't fail boot if mount fails
+# x-systemd.automount: Automount on first access
+# x-systemd.mount-timeout: Give TrueNAS time to start (2 minutes)
+# soft: Return error on timeout instead of hanging
+# timeo=100: 10 second timeout for NFS operations
+# retrans=2: Retry twice before giving up
+nfs_default_opts: "_netdev,nofail,x-systemd.automount,x-systemd.mount-timeout=120,soft,timeo=100,retrans=2"

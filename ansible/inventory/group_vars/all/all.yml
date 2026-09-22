@@ -106,6 +106,10 @@ prowlarr_url: "prowlarr.{{ homelab_domain }}"
 qbittorrent_url: "qbit.{{ homelab_domain }}"
 unmanic_url: "unmanic.{{ homelab_domain }}"
 
+# Idea Scout - Project URLs
+idea_scout_url: "idea-scout.projects.{{ homelab_domain }}"
+idea_scout_api_url: "api.idea-scout.projects.{{ homelab_domain }}"
+
 # Arr stack paths
 arr_media_path: "/mnt/media"
 

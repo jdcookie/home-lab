@@ -19,6 +19,114 @@
     src: "{{ item.src }}"
     path: "{{ item.mount_point }}"
     fstype: nfs
-    opts: "{{ item.opts | default('defaults') }}"
+    opts: "{{ item.opts | default(nfs_default_opts) }}"
     state: mounted
   loop: "{{ nfs_mounts }}"
+
+# Systemd service to restart Docker containers when NFS mounts become available
+# Solves race condition where containers start before mounts are ready
+- name: Create mount-ready check script
+  copy:
+    dest: /usr/local/bin/check-nfs-mounts-ready.sh
+    mode: '0755'
+    content: |
+      #!/bin/bash
+      # Check if NFS mounts are ready (not empty)
+      # Returns 0 if all mounts have content, 1 otherwise
+
+      MOUNTS="{{ nfs_mounts | map(attribute='mount_point') | join(' ') }}"
+
+      for mount in $MOUNTS; do
+        # Check mount exists and has content (more than . and ..)
+        if [ ! -d "$mount" ]; then
+          exit 1
+        fi
+        count=$(ls -A "$mount" 2>/dev/null | wc -l)
+        if [ "$count" -eq 0 ]; then
+          exit 1
+        fi
+      done
+      exit 0
+
+- name: Create NFS mount watcher script
+  copy:
+    dest: /usr/local/bin/restart-containers-on-mount.sh
+    mode: '0755'
+    content: |
+      #!/bin/bash
+      # Restart containers after NFS mounts are ready
+      # Handles race condition where Docker starts before TrueNAS
+
+      LOG_TAG="nfs-mount-watcher"
+      HOMELAB_DIR="/opt/homelab/compose"
+
+      logger -t "$LOG_TAG" "Checking if NFS mounts are ready..."
+
+      # Wait up to 5 minutes for mounts to be ready
+      for i in {1..60}; do
+        if /usr/local/bin/check-nfs-mounts-ready.sh; then
+          logger -t "$LOG_TAG" "NFS mounts are ready"
+
+          # Check if containers need restart (mount is empty inside container)
+          NEEDS_RESTART=0
+          if ! docker exec sonarr ls /media/downloads &>/dev/null; then
+            NEEDS_RESTART=1
+          fi
+
+          if [ "$NEEDS_RESTART" -eq 0 ]; then
+            logger -t "$LOG_TAG" "Containers already have access to mounts, no restart needed"
+            exit 0
+          fi
+
+          logger -t "$LOG_TAG" "Restarting containers to pick up NFS mounts..."
+
+          # Restart arr stack
+          if [ -f "$HOMELAB_DIR/arr/docker-compose.yml" ]; then
+            cd "$HOMELAB_DIR/arr" && docker compose restart sonarr radarr qbittorrent 2>/dev/null
+            logger -t "$LOG_TAG" "Arr stack restarted"
+          fi
+
+          # Restart Jellyfin
+          if [ -f "$HOMELAB_DIR/jellyfin/docker-compose.yml" ]; then
+            docker restart jellyfin 2>/dev/null
+            logger -t "$LOG_TAG" "Jellyfin restarted"
+          fi
+
+          # Restart Immich
+          if [ -f "$HOMELAB_DIR/immich/docker-compose.yml" ]; then
+            docker restart immich-server 2>/dev/null
+            logger -t "$LOG_TAG" "Immich restarted"
+          fi
+
+          logger -t "$LOG_TAG" "All containers restarted successfully"
+          exit 0
+        fi
+        sleep 5
+      done
+
+      logger -t "$LOG_TAG" "ERROR: NFS mounts not ready after 5 minutes"
+      exit 1
+
+- name: Create systemd service for NFS mount watcher
+  copy:
+    dest: /etc/systemd/system/nfs-mount-watcher.service
+    content: |
+      [Unit]
+      Description=Restart containers when NFS mounts are ready
+      After=docker.service mnt-media.mount mnt-video.mount mnt-photos.mount
+      Wants=mnt-media.mount mnt-video.mount mnt-photos.mount
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/restart-containers-on-mount.sh
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+  notify: Reload systemd
+
+- name: Enable NFS mount watcher service
+  systemd:
+    name: nfs-mount-watcher.service
+    enabled: yes
+    daemon_reload: yes

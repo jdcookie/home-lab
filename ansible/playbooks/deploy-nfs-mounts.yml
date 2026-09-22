@@ -2,7 +2,9 @@
 # Mount NFS shares from TrueNAS on Docker host
 
 - name: Configure NFS mounts
-  hosts: docker_hosts
+  # raph (bare_metal) runs the live arr stack + Jellyfin and needs the same
+  # hardened TrueNAS mounts as the docker-services VM.
+  hosts: docker_hosts:raph
   become: true
   gather_facts: true
 

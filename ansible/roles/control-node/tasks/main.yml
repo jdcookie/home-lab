@@ -167,19 +167,45 @@
     creates: /home/{{ control_user }}/.ansible/collections/ansible_collections/ansible/posix
 
 # =============================================================================
-# Claude Code Installation
+# Claude Code Installation (user-local npm global)
 # =============================================================================
 
-- name: Install Claude Code CLI
-  npm:
-    name: "@anthropic-ai/claude-code"
-    global: yes
-    state: present
+- name: Create npm global directory for user
+  become_user: "{{ control_user }}"
+  file:
+    path: "/home/{{ control_user }}/.npm-global"
+    state: directory
+    mode: '0755'
+  when: install_claude_code | bool
+
+- name: Configure npm to use user-local global directory
+  become_user: "{{ control_user }}"
+  command: npm config set prefix "/home/{{ control_user }}/.npm-global"
+  args:
+    creates: "/home/{{ control_user }}/.npmrc"
+  when: install_claude_code | bool
+
+- name: Add npm global bin to PATH in bashrc
+  become_user: "{{ control_user }}"
+  lineinfile:
+    path: "/home/{{ control_user }}/.bashrc"
+    line: 'export PATH="$HOME/.npm-global/bin:$PATH"'
+    create: yes
+  when: install_claude_code | bool
+
+- name: Install Claude Code CLI (user-local)
+  become_user: "{{ control_user }}"
+  command: npm install -g @anthropic-ai/claude-code
+  args:
+    creates: "/home/{{ control_user }}/.npm-global/bin/claude"
+  environment:
+    PATH: "/home/{{ control_user }}/.npm-global/bin:/usr/bin:/bin"
+    HOME: "/home/{{ control_user }}"
   when: install_claude_code | bool
 
 - name: Verify Claude Code installation
   become_user: "{{ control_user }}"
-  command: claude --version
+  command: "/home/{{ control_user }}/.npm-global/bin/claude --version"
   register: claude_version
   changed_when: false
   failed_when: false
@@ -283,6 +309,7 @@
       Node.js: {{ node_version.stdout }}
       Ansible: Installed in ~/.venv/ansible
       Claude Code: {{ 'Installed' if (claude_version.rc | default(1)) == 0 else 'Run: npm install -g @anthropic-ai/claude-code' }}
+      npm global: ~/.npm-global (no sudo required for updates)
 
       NEXT STEPS:
       1. SSH into leo: ssh {{ control_user }}@{{ ansible_host }}
@@ -292,6 +319,8 @@
       3. Clone repo: git clone {{ homelab_repo_url }} ~/Code/home-lab
       4. Set up Ansible vault password
       5. Run Claude: claude
+
+      To update Claude Code: npm install -g @anthropic-ai/claude-code
 
       To run playbooks from leo:
         cd ~/Code/home-lab/ansible

@@ -1,0 +1,81 @@
+---
+# Deploy Code Node - Node.js Development Environment with NVM
+#
+# This playbook configures the "code" LXC container as a Node.js
+# development workstation with NVM for version management.
+#
+# Prerequisites:
+#   1. LXC container 104 created in Proxmox (unprivileged, 4GB RAM, 200GB disk)
+#   2. CODE_IP set in .env file (default: 192.168.1.14)
+#   3. SSH access configured (user: jcook with sudo)
+#   4. Container has network access
+#
+# Usage:
+#   ansible-playbook playbooks/deploy-code.yml
+
+- name: Deploy Code Development Node
+  hosts: code
+  become: yes
+
+  vars_prompt:
+    - name: git_user_name
+      prompt: "Git user.name (leave empty to skip)"
+      private: no
+      default: ""
+
+    - name: git_user_email
+      prompt: "Git user.email (leave empty to skip)"
+      private: no
+      default: ""
+
+  pre_tasks:
+    - name: Verify we're running on code node
+      assert:
+        that:
+          - code_node | default(false) | bool
+        fail_msg: "This playbook should only run on the code development node"
+
+    - name: Gather facts
+      setup:
+        gather_subset:
+          - min
+          - network
+
+  roles:
+    - role: code-node
+      vars:
+        git_user_name: "{{ git_user_name }}"
+        git_user_email: "{{ git_user_email }}"
+
+  post_tasks:
+    - name: Final instructions
+      debug:
+        msg: |
+          ============================================================
+          CODE NODE SETUP COMPLETE!
+
+          SSH into the code container:
+
+            ssh jcook@{{ ansible_host }}
+
+          NVM is ready to use:
+
+            nvm install 18    # Install Node 18
+            nvm install 20    # Install Node 20
+            nvm use 18        # Switch to Node 18
+            nvm list          # List installed versions
+
+          Claude Code:
+
+            claude                                  # Start Claude Code
+            npm update -g @anthropic-ai/claude-code # Update (no sudo needed)
+
+          Your projects directory:
+
+            ~/Code/
+
+          Don't forget to add your SSH key to GitHub:
+
+            cat ~/.ssh/id_ed25519.pub
+
+          ============================================================

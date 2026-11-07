@@ -101,3 +101,47 @@
   debug:
     msg: "Arr stack deployed successfully. Services: {{ arr_compose_result.containers | map(attribute='Name') | list | join(', ') }}"
   when: arr_compose_result is defined
+
+- name: Install qBittorrent VPN watchdog script
+  copy:
+    src: qbittorrent-vpn-watchdog.sh
+    dest: /usr/local/bin/qbittorrent-vpn-watchdog
+    mode: '0755'
+  tags: qbittorrent-watchdog
+
+- name: Create systemd service for qBittorrent VPN watchdog
+  copy:
+    dest: /etc/systemd/system/qbittorrent-vpn-watchdog.service
+    content: |
+      [Unit]
+      Description=Restart qBittorrent if it has lost its VPN listen socket
+      After=docker.service
+      Requires=docker.service
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/qbittorrent-vpn-watchdog
+  tags: qbittorrent-watchdog
+
+- name: Create systemd timer for qBittorrent VPN watchdog
+  copy:
+    dest: /etc/systemd/system/qbittorrent-vpn-watchdog.timer
+    content: |
+      [Unit]
+      Description=Check qBittorrent VPN listen socket every 5 minutes
+
+      [Timer]
+      OnBootSec=5min
+      OnUnitActiveSec=5min
+
+      [Install]
+      WantedBy=timers.target
+  tags: qbittorrent-watchdog
+
+- name: Enable qBittorrent VPN watchdog timer
+  systemd:
+    name: qbittorrent-vpn-watchdog.timer
+    enabled: yes
+    state: started
+    daemon_reload: yes
+  tags: qbittorrent-watchdog
